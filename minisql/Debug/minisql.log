@@ -1,0 +1,16 @@
+﻿生成启动时间为 2014/10/31 14:16:27。
+     1>项目“D:\c++ code\minisql\minisql\minisql.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\vs2013pro\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt API_Module.cpp Interpreter.cpp MiniSQL.cpp
+         MiniSQL.cpp
+         Interpreter.cpp
+     1>d:\c++ code\minisql\minisql\interpreter.cpp(27): error C2039: “getGetAt”: 不是“std::basic_string<char,std::char_traits<char>,std::allocator<char>>”的成员
+     1>d:\c++ code\minisql\minisql\interpreter.cpp(27): fatal error C1903: 无法从以前的错误中恢复；正在停止编译
+         API_Module.cpp
+     1>d:\c++ code\minisql\minisql\api_module.cpp(2): fatal error C1083: 无法打开包括文件: “Catalog_Manager.h”: No such file or directory
+         正在生成代码...
+     1>已完成生成项目“D:\c++ code\minisql\minisql\minisql.vcxproj”(Build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:01.99
