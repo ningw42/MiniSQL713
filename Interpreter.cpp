@@ -3,7 +3,7 @@ using namespace std;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //获取用户输入，并对输入作有效性检查，若正确，返回语句的内部表示形式
-string Interpreter(string statement)	
+string Interpreter(string statement)
 {
 	string SQL;
 	string temp;
@@ -21,7 +21,7 @@ string Interpreter(string statement)
 	temp = SQL.substr(start, end - start);//第一个词
 	//获取第二个单词
 	start = end + 1;
-	
+
 	//若为create语句
 	if(temp=="create")
 		SQL=create_clause(SQL,start);
@@ -76,7 +76,7 @@ string create_clause(string SQL,int start)
 	//获取第二个单词
 	end = SQL.find_first_of(' ', start);
 	temp = SQL.substr(start, end - start);
-	start=end+1;  //start从第三个词开始
+	start = end + 1;  //start从第三个词开始
 
 	//若无，打印出错信息
 	if (start == 0 || temp.empty())
@@ -177,7 +177,7 @@ string create_table(string SQL,int start)
 		SQL="99";
 		return SQL;
 	}
-	else 
+	else
 	{
 		sql=temp+",";
 		//获取每个属性
@@ -282,7 +282,7 @@ string create_table(string SQL,int start)
 					cout<<"error : "<<T<<"---is not a valid key word!"<<endl;
 					SQL="99";
 					return SQL;
-				}				
+				}
 			}
 			//若为一般属性
 			else   //还可以不定义主键？
@@ -326,7 +326,7 @@ string get_attribute(string temp,string sql)
 		sql="99";
 		return sql;
 	}
-	//若为int 
+	//若为int
 	else if(T=="int")
 		sql+="+";
 	//若为float
@@ -433,7 +433,7 @@ string create_index(string SQL,int start)
 		{
 			cout<<"syntax error:"<<" "<<temp<<"---is not a valid key word!"<<endl;
 			SQL="99";
-		}			
+		}
 	}
 	return SQL;
 }
@@ -728,7 +728,7 @@ string insert_clause(string SQL,int start)  //insert into 表名 values ( 值1 , 值
 		}
 		else
 		{
-			
+
 			//获取第三个单词
 			while(SQL.GetAt(start)==' ')
 				start++;
@@ -758,8 +758,8 @@ string insert_clause(string SQL,int start)  //insert into 表名 values ( 值1 , 值
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
-//验证insert into values语句是否有效    
-string insert_into_values(string SQL,int start,string sql)  
+//验证insert into values语句是否有效
+string insert_into_values(string SQL,int start,string sql)
 {
 	string temp;                      //insert into 表名 values ( 值1 , 值2 , … , 值n ) ;
 	string T;
