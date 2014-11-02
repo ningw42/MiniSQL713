@@ -688,68 +688,75 @@ string get_part(string temp,string sql,string kind)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //验证insert语句是否有效
-string insert_clause(string SQL,int start)  //insert into 表名 values ( 值1 , 值2 , … , 值n ) ;
+string insert_clause(string SQL, int start)  //insert into 表名 values ( 值1 , 值2 , … , 值n ) ;
 {
-	string temp,sql;
+	string temp;
+	string sql = "";
 	int end;
-	//获取第二个单词
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);  //temp = into
-	start=end+1;
-	//若无，打印出错信息
-	if(string)
-	{
-		cout<<"syntax error: syntax error for insert statement!"<<endl;
-		SQL="99";
-	}
-	else if (temp != 'into')
-	{
-		cout<<"syntax error: syntax error for insert statement!"<<endl;
-		SQL="99";
 
+
+	start = SQL.find_first_not_of(' ', start);	//第二个单词
+	end = SQL.find(' ', start);
+	temp = SQL.substr(start, end - start);  //temp = "into"
+
+	start = end + 1;
+	//若无，打印出错信息
+	if (temp.empty())
+	{
+		cout << "syntax error: can't find the keyword 'into' " << endl;
+		SQL = "99";
+	}
+	else if (temp != "into")
+	{
+		cout << "syntax error: might be 'into' " << endl;
+		SQL = "99";
 	}
 	else
 	{
 		//获取第三个单词
-		while(SQL.GetAt(start)==' ')
-			start++;
-		index=start;
-		end=SQL.Find(' ',start);
-		temp=SQL.Mid(start,end-start);  //temp = table名
+		start = SQL.find_first_not_of(' ', start);
+		//index = start;
+		end = SQL.find(' ', start);
+		temp = SQL.substr(start, end - start);  //temp = table名
 		sql += temp;   //sql = table名
-		start=end+1;
+		start = end + 1;
+
 		//若无，打印出错信息
-		if(string)
+		if (temp.empty())
 		{
-			cout<<"syntax error: syntax error for insert statement!"<<endl;
-			SQL="99";
+			cout << "syntax error: can't find the target Table" << endl;
+			SQL = "99";
+		}
+		else if (temp == "values" || temp == "value" || temp == "into")
+		{
+			cout << "syntax error: can't find the target Table" << endl;
+			SQL = "99";
 		}
 		else
 		{
 
-			//获取第三个单词
-			while(SQL.GetAt(start)==' ')
-				start++;
-			index=start;
-			end=SQL.Find(' ',start);
-			temp=SQL.Mid(start,end-start);  //temp = value
-			start=end+1;                    //strat = (
+			//获取第四个单词
+			start = SQL.find_first_not_of(' ', start);
+			//index = start;
+			end = SQL.find(' ', start);
+			temp = SQL.substr(start, end - start);  //temp = value
+			start = end + 1;                    //start = (
+
 			//若无，打印出错信息
-			if(string)
+			if (temp.empty())
 			{
-				cout<<"syntax error: syntax error for insert statement!"<<endl;
-				SQL="99";
+				cout << "syntax error: can't find keyword 'values' or 'value' " << endl;
+				SQL = "99";
 			}
-			else if (temp != "value")
+			else if (temp != "values" && temp != "value")
 			{
-				cout<<"syntax error: syntax error for insert statement!"<<endl;
-				SQL="99";
+				cout << "syntax error: maybe 'value' or 'values' " << endl;
+				SQL = "99";
 			}
 			else
 			{
-				SQL=insert_into_values(SQL,start,sql);
+				//cout << SQL;
+				SQL = insert_into_values(SQL, start, sql);
 			}
 		}
 	}
@@ -759,42 +766,51 @@ string insert_clause(string SQL,int start)  //insert into 表名 values ( 值1 , 值
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //验证insert into values语句是否有效
-string insert_into_values(string SQL,int start,string sql)
+string insert_into_values(string SQL, int start, string sql)
 {
 	string temp;                      //insert into 表名 values ( 值1 , 值2 , … , 值n ) ;
 	string T;
 	int end;
 	//获取(
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);  //temp = (
-	start=end+1;
+	start = SQL.find_first_not_of(' ', start);
+	end = SQL.find_first_not_of('(', start);
+	temp = SQL.substr(start, end - start);  //temp = (
+	start = end;
 	//若无，打印出错
-	if(string)
+	if (temp.empty())
 	{
-		cout<<"syntax error: syntax error for insert into statement!"<<endl;
-		SQL="99";
+		cout << "syntax error: lack of '('" << endl;
+		SQL = "99";
 	}
-	else if(temp != '(')
+	else if (temp != "(")
 	{
-		cout<<"syntax error: syntax error for insert into statement!"<<endl;
-		SQL="99";
+		cout << "syntax error: multiple '(' have been found" << endl; //左括号缺失或过多
+		SQL = "99";
 	}
 	else
 	{
-		end=SQL.Find(' ',start);
-		temp=SQL.Mid(start,end-start);  //temp = ( 值1 , 值2 , … , 值n )
-		start=end+1;
-		//若无，打印出错
-		if(string)
+		end = SQL.rfind(')', SQL.length());	//最后一个右括号
+		if (end == -1)
 		{
-			cout<<"syntax error: syntax error for insert into statement!"<<endl;
-			SQL="99";
+			cout << "syntax error: lack of ')'" << endl;
+			SQL = "99";
 		}
 		else
 		{
-			SQL="30"+sql+' '+temp;
+			temp = SQL.substr(start, end - start);  //temp = ( 值1 , 值2 , … , 值n )
+			start = end + 1;
+			//若无，打印出错
+			if (temp.empty())
+			{
+				cout << "syntax error: syntax error for insert into statement!" << endl;
+				SQL = "99";
+			}
+			else
+			{
+				//replace(temp.begin(), temp.end(), ' ', ''); // replace all 'x' to 'y'
+				SQL = "30" + sql + ' ' + temp;
+				cout << SQL;
+			}
 		}
 	}
 	return SQL;
