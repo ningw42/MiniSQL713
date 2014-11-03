@@ -12,7 +12,7 @@ string Interpreter()
 	SQL = read_input();
 	//»ñÈ¡ÊäÈëµÄµÚÒ»¸öµ¥´Ê
 	start = SQL.find_first_not_of(' ',0);
-	end = SQL.find_first_of(' ',start);
+	end = SQL.find_first_not_of(allchar, start);
 	temp = SQL.substr(start, end - start);//µÚÒ»¸ö´Ê
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
 	start = end + 1;
@@ -94,12 +94,12 @@ string create_clause(string SQL,int start)
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
 	end = SQL.find_first_of(' ', start);
 	temp = SQL.substr(start, end - start);
-	start=end+1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
+	start = end + 1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
 
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 	if (start == 0 || temp.empty())
 	{
-		cout<<"syntax error: syntax error for create statement!"<<endl;
+		cout << "syntax error: syntax error for create statement!" << endl;
 		SQL="99";
 	}
 	//ÈôÎªdatabase,¼ÌĞøÑéÖ¤
@@ -114,7 +114,7 @@ string create_clause(string SQL,int start)
 	//ÈôÎª´íÎóĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 	else
 	{
-		cout<<"syntax error:"<<" "<<temp<<"---is not a valid key word!"<<endl;
+		cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
 		SQL="99";
 	}
 	//·µ»ØcreateÓï¾äµÄÄÚ²¿ĞÎÊ½
@@ -143,7 +143,7 @@ string create_database(string SQL, int start)
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 		if (SQL.at(end) != ';' || end != SQL.length() - 1)
 		{
-			cout << "error12:" << temp << "---is not a valid database name!" << endl;
+			cout << "error:" << temp << "---is not a valid database name!" << endl;
 			SQL = "99";
 		}
 		//·µ»Øcreate databaseÓï¾äµÄÄÚ²¿ĞÎÊ½
@@ -669,14 +669,12 @@ string insert_clause(string SQL, int start)  //insert into ±íÃû values ( Öµ1 , Ö
 	string sql = "";
 	int end;
 
-
-	start = SQL.find_first_not_of(' ', start);	//µÚ¶ş¸öµ¥´Ê
 	end = SQL.find(' ', start);
 	temp = SQL.substr(start, end - start);  //temp = "into"
 
 	start = end + 1;
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if (temp.empty())
+	if ( start == 0 || temp.empty())
 	{
 		cout << "syntax error: can't find the keyword 'into' " << endl;
 		SQL = "99";
@@ -823,6 +821,32 @@ string get_each(string T,string sql,string condition)
 //ÑéÖ¤useÓï¾äÊÇ·ñÓĞĞ§
 string use_clause(string SQL,int start)
 {
+	string temp;
+	int end;
+	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
+	end = SQL.find_first_not_of(allchar, start);
+	temp = SQL.substr(start, end - start);
+	end = SQL.find_first_not_of(' ', end);
+	start = end + 1;
+
+	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
+	if (start == 0 || temp.empty())
+	{
+		cout << "syntax error: syntax error for use statement!" << endl;
+		SQL = "99";
+	}
+	else
+	{
+		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
+		if (SQL.at(end) != ';' || end != SQL.length() - 1)
+		{
+			cout << "error:" << temp << "---is not a valid database name!" << endl;
+			SQL = "99";
+		}
+		//·µ»Øcreate databaseÓï¾äµÄÄÚ²¿ĞÎÊ½
+		else
+			SQL = "50" + temp;
+	}
 	return SQL;
 }
 
@@ -830,6 +854,32 @@ string use_clause(string SQL,int start)
 //ÑéÖ¤execfileÓï¾äÊÇ·ñÓĞĞ§
 string execfile_clause(string SQL,int start)
 {
+	string temp;
+	int end;
+	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
+	end = SQL.find_last_of(allchar) + 1;
+	temp = SQL.substr(start, end - start);
+	end = SQL.find_first_not_of(' ', end);
+	start = end + 1;
+
+	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
+	if (start == 0 || temp.empty())
+	{
+		cout << "syntax error: syntax error for execfile statement!" << endl;
+		SQL = "99";
+	}
+	else
+	{
+		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
+		if (SQL.at(end) != ';' || end != SQL.length() - 1)
+		{
+			cout << "error:" << temp << "---is not a valid file name!" << endl;
+			SQL = "99";
+		}
+		//·µ»Øcreate databaseÓï¾äµÄÄÚ²¿ĞÎÊ½
+		else
+			SQL = "60" + temp;
+	}
 	return SQL;
 }
 
@@ -837,5 +887,6 @@ string execfile_clause(string SQL,int start)
 //ÑéÖ¤quitÓï¾äÊÇ·ñÓĞĞ§
 string quit_clause(string SQL,int start)
 {
+	SQL = "70";
 	return SQL;
 }
