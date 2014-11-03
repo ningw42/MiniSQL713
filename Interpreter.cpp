@@ -4,7 +4,7 @@ string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //获取用户输入，并对输入作有效性检查，若正确，返回语句的内部表示形式
-string Interpreter()	
+string Interpreter()
 {
 	string SQL;
 	string temp;
@@ -16,7 +16,7 @@ string Interpreter()
 	temp = SQL.substr(start, end - start);//第一个词
 	//获取第二个单词
 	start = end + 1;
-	
+
 	//若为create语句
 	if(temp=="create")
 		SQL=create_clause(SQL,start);
@@ -162,7 +162,7 @@ string create_table(string SQL, int start)
 	//获取表名
 	end = SQL.find_first_not_of(allchar, start);
 	temp = SQL.substr(start, end - start);// 表名
-		
+
 	if ((SQL.find('(', end)) == -1)
 	{
 		cout << "error: missing ( in the statement!" << endl;
@@ -178,7 +178,7 @@ string create_table(string SQL, int start)
 		SQL = "99";
 		return SQL;
 	}
-	else 
+	else
 	{
 		sql = temp + ",";
 		start = SQL.find_first_of(allchar, start);
@@ -229,7 +229,7 @@ string create_table(string SQL, int start)
 				end = SQL.find_first_not_of(allchar, start);
 				T = SQL.substr(start, end - start);
 				start = end;
-				
+
 				//若为空，打印出错信息
 				if(T.empty())
 				{
@@ -273,7 +273,7 @@ string create_table(string SQL, int start)
 					cout << "error : " << T << "---is not a valid key word!" << endl;
 					SQL = "99";
 					return SQL;
-				}				
+				}
 			}
 			//若为一般属性
 			else   //还可以不定义主键？
@@ -317,7 +317,7 @@ string get_attribute(string temp, string sql)
 		sql = "99";
 		return sql;
 	}
-	//若为int 
+	//若为int
 	else if (type == "int")
 		sql += "+";
 	//若为float
@@ -424,7 +424,7 @@ string create_index(string SQL,int start)
 		{
 			cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
 			SQL = "99";
-		}			
+		}
 	}
 	return SQL;
 }
@@ -651,6 +651,93 @@ string drop_index(string SQL,int start)  //drop index 索引名 ;
 //验证select 语句是否有效
 string select_clause(string SQL,int start)
 {
+	int end;
+	string temp;
+	string attr;
+	string table;
+	string condition;
+	end = SQL.find("from", start);
+	if (end == -1)	//没有from
+	{
+		cout << "syntax error: lack of 'from'" << endl;
+		SQL = "99";
+	}
+	else
+	{
+		temp = SQL.substr(start, end - start);	//选择属性
+		temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//去空格
+		start = end + 4;
+		if (temp.empty())	//是否有属性
+		{
+			cout << "syntax error: please specify the attributes" << endl;
+			SQL = "99";
+		}
+		else
+		{
+			attr = temp;
+			start = SQL.find_first_of(allchar, start);
+			end = SQL.find_first_of(' ', start);
+			table = SQL.substr(start, end - start);	//表名
+
+
+			//cout << attr << endl << start << endl << end << endl << table << endl;
+
+			start = end + 1;
+			end = SQL.find_first_not_of(allchar, start);
+			temp = SQL.substr(start, end - start);	//取where
+
+			if (temp != "where")	//是否有where
+			{
+				//无where；
+				if (end < SQL.length() - 1)
+				{
+					//缺少待查表
+					cout << "syntax error: might be 'where' " << endl;
+					SQL = "99";
+				}
+				else
+				{
+					//无where的正确语句；																	//	TO-DO
+				}
+			}
+			else
+			{
+				//有where；
+				//cout << temp << endl;
+				if (table.empty())
+				{
+					//缺少待查表
+					cout << "syntax error: please specify the tables" << endl;
+					SQL = "99";
+				}
+				else
+				{
+					//有待查表
+					start = end + 1;
+					temp = SQL.substr(start, SQL.length() - start - 1);
+
+
+					//cout << start << endl << end << endl << temp << endl;
+
+
+
+					temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//去空格
+					if (temp.empty())	//是否有where条件
+					{
+						//缺少where条件
+						cout << "syntax error: please specify the condition or remove 'where' " << endl;
+						SQL = "99";
+					}
+					else
+					{
+						//有where条件
+						condition = temp;																//	TO-DO
+					}
+				}
+			}
+		}
+	}
+	//cout << attr << ' ' << table << ' ' << condition << endl;
 	return SQL;
 }
 
