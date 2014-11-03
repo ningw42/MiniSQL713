@@ -1,27 +1,22 @@
 #include "Interpreter.h"
 using namespace std;
+string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñÈ¡ÓÃ»§ÊäÈë£¬²¢¶ÔÊäÈë×÷ÓĞĞ§ĞÔ¼ì²é£¬ÈôÕıÈ·£¬·µ»ØÓï¾äµÄÄÚ²¿±íÊ¾ĞÎÊ½
-string Interpreter(string statement)
+string Interpreter()	
 {
 	string SQL;
 	string temp;
 	int start=0, end;
-	if (statement.empty()){
-		cout << "syntax error: empty statement!" << endl;
-		SQL = "99";
-		return SQL;
-	}
-	else
-		SQL = lower(statement);
+	SQL = read_input();
 	//»ñÈ¡ÊäÈëµÄµÚÒ»¸öµ¥´Ê
 	start = SQL.find_first_not_of(' ',0);
 	end = SQL.find_first_of(' ',start);
 	temp = SQL.substr(start, end - start);//µÚÒ»¸ö´Ê
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
 	start = end + 1;
-
+	
 	//ÈôÎªcreateÓï¾ä
 	if(temp=="create")
 		SQL=create_clause(SQL,start);
@@ -60,6 +55,29 @@ string Interpreter(string statement)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+//»ñÈ¡ÓÃ»§ÊäÈë
+string read_input()
+{
+	string SQL;
+	string temp;
+	bool finish = false;
+	SQL = "";
+	while (!finish)
+	{
+		cin >> temp;
+		SQL = SQL + ' ' + temp;
+		if (SQL.at(SQL.length()-1) == ';'){
+			SQL.erase(0,1);
+			finish = true;
+		}
+	}
+	//½«ÊäÈë´óĞ´×ª»¯ÎªĞ¡Ğ´
+	SQL = lower(SQL);
+	//·µ»ØÓÃ»§ÊäÈë
+	return SQL;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 //¸ÄÎªĞ¡Ğ´
 string lower(string s)
 {
@@ -76,7 +94,7 @@ string create_clause(string SQL,int start)
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
 	end = SQL.find_first_of(' ', start);
 	temp = SQL.substr(start, end - start);
-	start = end + 1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
+	start=end+1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
 
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 	if (start == 0 || temp.empty())
@@ -137,109 +155,86 @@ string create_database(string SQL, int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤create tableÓï¾äÊÇ·ñÓĞĞ§
-string create_table(string SQL,int start)
+string create_table(string SQL, int start)
 {
-	string temp,sql,T;
-	int index,end,length;
+	string temp, sql, T;
+	int end;
 	//»ñÈ¡±íÃû
-	end = SQL.find_first_of('(', start);
-	temp = SQL.substr(start, end - start);  //±íÃû
-	start = end + 1;  //start´ÓµÚËÄ¸ö´Ê¿ªÊ¼
-	index=start;
-	if((end=SQL.Find('(',start))==-1)
+	end = SQL.find_first_not_of(allchar, start);
+	temp = SQL.substr(start, end - start);// ±íÃû
+		
+	if ((SQL.find('(', end)) == -1)
 	{
-		cout<<"error: missing ( in the statement!"<<endl;
-		SQL="99";
+		cout << "error: missing ( in the statement!" << endl;
+		SQL = "99";
 		return SQL;
 	}
-	temp=SQL.Mid(start,end-start);  //±íÃû
-	start=end+1;   // (
-	if(!temp.IsEmpty())
-	{
-		while(SQL.GetAt(start)==' ')
-			start++;
-		length=temp.GetLength()-1;
-		while(temp.GetAt(length)==' ')
-			length--;
-		temp=temp.Left(length+1);      //?
-	}
+	start = SQL.find_first_of('(', end) + 1;
+
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 	if (start == 0 || temp.empty())
 	{
-		cout<<"error: error in create table statement!"<<endl;
-		SQL="99";
+		cout << "error: error in create table statement!" << endl;
+		SQL = "99";
 		return SQL;
 	}
-	//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
-	else if(temp.Find(' ')!=-1)   //Ãû×ÖÖĞÓĞ¿Õ¸ñ
+	else 
 	{
-		cout<<"error: "<<temp<<"---is not a valid table name!"<<endl;
-		SQL="99";
-		return SQL;
-	}
-	else
-	{
-		sql=temp+",";
+		sql = temp + ",";
+		start = SQL.find_first_of(allchar, start);
 		//»ñÈ¡Ã¿¸öÊôĞÔ
-		while((end=SQL.Find(',',start))!=-1)
+		while ((end = SQL.find(',', start)) != -1)
 		{
-			temp=SQL.Mid(start,end-start);  //µÚÒ»¸öÊôĞÔ
-			start=end+1;
+			temp = SQL.substr(start, end - start);  //µÚÒ»¸öÊôĞÔ
+			start = end + 1;
 			//ÈôÓĞ¿ÕÊôĞÔ£¬´òÓ¡³ö´íĞÅÏ¢
 			if (start == 0 || temp.empty())
 			{
-				cout<<"error: error in create table statement!"<<endl;
-				SQL="99";
+				cout << "error: error in create table statement!" << endl;
+				SQL = "99";
 				return SQL;
 			}
 			//±£´æÊôĞÔ
 			else
 			{
-				sql=get_attribute(temp,sql);
-				if(sql=="99")
+				sql = get_attribute(temp, sql);
+				if (sql == "99")
 					return sql;
 			}
-			while(SQL.GetAt(start)==' ')
+			while (SQL.at(start) == ' ' || SQL.at(start) == '\n')
 				start++;
 		}
 		//»ñµÃ×îºóÊôĞÔ
-		temp=SQL.Mid(start,SQL.GetLength()-start-1);
-		length=temp.GetLength()-1;
-		while(temp.GetAt(length)!=')'&&length>=0)
-			length--;
+		end = SQL.find_last_of(')');
+		temp = SQL.substr(start, end - start);
 		//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-		if(length<1)
+		if(temp.empty())
 		{
-			cout<<"error: error in create table statement!"<<endl;
-			SQL="99";
+			cout << "error: error in create table statement!" << endl;
+			SQL = "99";
 			return SQL;
 		}
 		//´æ´¢ÊôĞÔ
 		else
 		{
-			temp=temp.Left(length);
-			end=SQL.Find(' ',start);
-			T=SQL.Mid(start,end-start);
-			start=end+1;
+			end = SQL.find_first_of(' ', start);
+			T = SQL.substr(start, end - start);
+			start = end + 1;
 			//ÈôÎªÖ÷¼ü¶¨Òå
-			if(T=="primary")
+			if (T == "primary")
 			{
 				//ÅĞ¶ÏÊÇ·ñÓĞ¹Ø¼ü×Ökey
-				temp+=")";
-				while(SQL.GetAt(start)==' ')
+				while (SQL.at(start) == ' ')
 					start++;
-				end=SQL.Find('(',start);
-				T=SQL.Mid(start,end-start);
-				start=end+1;
-				length=T.GetLength()-1;
-				while(T.GetAt(length)==' ')
-					length--;
-				T=T.Left(length+1);
+				end = SQL.find_first_of('(', start);
+				T = SQL.substr(start, end - start);
+				start = end + 1;
+				
 				//ÈôÎª¿Õ£¬´òÓ¡³ö´íĞÅÏ¢
-				if(T.IsEmpty())
+				if(T.empty())
 				{
-					cout<<"syntax error: syntax error in create table statement!"<<endl;
-					cout<<"\t missing key word key!"<<endl;
+					cout << "syntax error: syntax error in create table statement!" << endl;
+					cout << "\t missing key word key!" << endl;
 					SQL="99";
 					return SQL;
 				}
@@ -247,23 +242,19 @@ string create_table(string SQL,int start)
 				else if(T=="key")
 				{
 					//»ñÈ¡Ö÷¼üÊôĞÔÃû
-					while(SQL.GetAt(start)==' ')
+					while (SQL.at(start) == ' ')
 						start++;
-					end=SQL.Find(')',start);
-					T=SQL.Mid(start,end-start);
-					length=T.GetLength()-1;
-					while(T.GetAt(length)==' ')
-						length--;
-					T=T.Left(length+1);
+					end = SQL.find(')', start);
+					T = SQL.substr(start, end - start);
 					//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-					if(T.IsEmpty())
+					if(T.empty())
 					{
 						cout<<"error : missing primary key attribute name!"<<endl;
 						SQL="99";
 						return SQL;
 					}
 					//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
-					else if(T.Find(' ')!=-1)
+					else if (T.find(' ') != -1 || (sql.find(T) == -1))
 					{
 						cout<<"error : "<<T<<"---is not a valid primary key attribute name!"<<endl;
 						SQL="99";
@@ -272,25 +263,25 @@ string create_table(string SQL,int start)
 					//±£´æÖ÷¼ü
 					else
 					{
-						sql+=T+" #,";
+						sql += T + " #,";
 						SQL="01"+sql;
 					}
 				}
 				//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 				else
 				{
-					cout<<"error : "<<T<<"---is not a valid key word!"<<endl;
-					SQL="99";
+					cout << "error : " << T << "---is not a valid key word!" << endl;
+					SQL = "99";
 					return SQL;
-				}
+				}				
 			}
 			//ÈôÎªÒ»°ãÊôĞÔ
 			else   //»¹¿ÉÒÔ²»¶¨ÒåÖ÷¼ü£¿
 			{
-				sql=get_attribute(temp,sql);
-				if(sql=="99")
+				sql = get_attribute(temp, sql);
+				if (sql == "99")
 				{
-					SQL="99";
+					SQL = "99";
 					return SQL;
 				}
 				else
@@ -303,92 +294,92 @@ string create_table(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñµÃÊôĞÔ
-string get_attribute(string temp,string sql)
+string get_attribute(string temp, string sql)
 {
-	int start=0,end,index;
-	string T,C;
-	temp+=" ";
+	int start = 0, end, index;
+	string name, type, C, uni;
+	temp += " ";
 	//»ñµÃÊôĞÔÃû
-	end=temp.Find(' ',start);
-	T=temp.Mid(start,end-start);
-	start=end+1;
-	sql+=T+" ";
+	end = temp.find_first_of(' ', start);
+	name = temp.substr(start, end - start);
+	start = end + 1;
+	sql = sql + name + ' ';
 	//»ñµÃÊı¾İÀàĞÍ
-	while(temp.GetAt(start)==' ')
+	while (temp.at(start) == ' ')
 		start++;
-	end=temp.Find(' ',start);
-	T=temp.Mid(start,end-start);
-	start=end+1;
+	end = temp.find(' ', start);
+	type = temp.substr(start, end - start);
+	start = end;
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if(T.IsEmpty())
+	if (name.empty() || type.empty())
 	{
-		cout<<"error : error in create table statement!"<<endl;
-		sql="99";
+		cout << "error : error in create table statement!" << endl;
+		sql = "99";
 		return sql;
 	}
-	//ÈôÎªint
-	else if(T=="int")
-		sql+="+";
+	//ÈôÎªint 
+	else if (type == "int")
+		sql += "+";
 	//ÈôÎªfloat
-	else if(T=="float")
-		sql+="-";
+	else if (type == "float")
+		sql += "-";
 	//ÆäËû
 	else
 	{
-		index=T.Find('(');   //²»ÊÇ£©£¿
-		C=T.Left(index);
+		index = type.find('(');
+		C = type.substr(0, index);
 		index++;
 		//ÈôÓĞÎó£¬´òÓ¡³ö´íĞÅÏ¢
-		if(C.IsEmpty())
+		if (C.empty())
 		{
-			cout<<"error: "<<T<<"---is not a valid data type definition!"<<endl;
-			sql="99";
+			cout << "error: " << type << "---is not a valid data type definition!" << endl;
+			sql = "99";
 			return sql;
 		}
 		//ÈôÎªchar
-		else if(C=="char")
+		else if (C == "char")
 		{
-			C=T.Mid(index,T.GetLength()-index-1);
-			if(C.IsEmpty())
+			C = type.substr(index, type.length() - index - 1);
+			if (C.empty())
 			{
-				cout<<"error: the length of the data type char has not been specified!"<<endl;
-				sql="99";
+				cout << "error: the length of the data type char has not been specified!" << endl;
+				sql = "99";
 				return sql;
 			}
 			else
-				sql+=C;
+				sql += C;
 		}
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 		else
 		{
-			cout<<"error: "<<C<<"---is not a valid key word!"<<endl;
-			sql="99";
+			cout << "error: " << C << "---is not a valid key word!" << endl;
+			sql = "99";
 			return sql;
 		}
 	}
 	//ÊÇ·ñÓĞ¸½¼ÓĞÅÏ¢
-	while(start<temp.GetLength()&&temp.GetAt(start)==' ')
+	while (start < temp.length() - 1 && temp.at(start) == ' ')
 		start++;
-	if(start<temp.GetLength())
+	if (start < temp.length() - 1)
 	{
 		//ÈôÎªunique¶¨Òå£¬±£´æĞÅÏ¢
-		end=temp.Find(' ',start);
-		T=temp.Mid(start,end-start);
-		if(T=="unique")
+		end = temp.find_first_of(' ', start);
+		uni = temp.substr(start, end - start);
+		if (uni == "unique")
 		{
-			sql+=" 1,";
+			sql += " 1,";
 		}
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 		else
 		{
-			cout<<"error: "<<temp<<"---is not a valid key word!"<<endl;
-			sql="99";
+			cout << "error: " << uni << "---is not a valid key word!" << endl;
+			sql = "99";
 			return sql;
 		}
 	}
 	//ÈôÎŞ¸½¼ÓĞÅÏ¢
 	else
-		sql+=" 0,";
+		sql += " 0,";
 	return sql;
 }
 
@@ -396,44 +387,44 @@ string get_attribute(string temp,string sql)
 //ÑéÖ¤create indexÓï¾äÊÇ·ñÓĞĞ§
 string create_index(string SQL,int start)
 {
-	string temp,sql;
+	string temp, sql;
 	int end;
 	//»ñÈ¡µÚÈı¸öµ¥´Ê
-	while(SQL.GetAt(start)==' ')
+	while(SQL.at(start)==' ')
 		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);
-	start=end+1;
+	end = SQL.find_first_of(' ', start);
+	temp = SQL.substr(start, end - start);
+	start = end + 1;
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 	if (start == 0 || temp.empty())
 	{
-		cout<<"syntax error: syntax error for create index statement!"<<endl;
-		SQL="99";
+		cout << "syntax error: syntax error for create index statement!" << endl;
+		SQL = "99";
 	}
 	else
 	{
-		sql=temp;
+		sql = temp;
 		//»ñÈ¡µÚËÄ¸öµ¥´Ê
-		while(SQL.GetAt(start)==' ')
+		while (SQL.at(start) == ' ')
 			start++;
-		end=SQL.Find(' ',start);
-		temp=SQL.Mid(start,end-start);
+		end = SQL.find_first_of(' ', start);
+		temp = SQL.substr(start, end - start);
 		start=end+1;
 		//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 		if (start == 0 || temp.empty())
 		{
-			cout<<"syntax error: syntax error for create index statement!"<<endl;
-			SQL="99";
+			cout << "syntax error: syntax error for create index statement!" << endl;
+			SQL = "99";
 		}
 		//ÈôÎªon,¼ÌĞøÑéÖ¤
-		else if(temp=="on")
-			SQL=create_index_on(SQL,start,sql);
+		else if (temp == "on")
+			SQL = create_index_on(SQL, start, sql);
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡·Ç·¨ĞÅÏ¢
 		else
 		{
-			cout<<"syntax error:"<<" "<<temp<<"---is not a valid key word!"<<endl;
-			SQL="99";
-		}
+			cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
+			SQL = "99";
+		}			
 	}
 	return SQL;
 }
@@ -443,38 +434,38 @@ string create_index(string SQL,int start)
 string create_index_on(string SQL,int start,string sql)
 {
 	string temp;
-	int end,length;
+	int end, length;
 	//»ñÈ¡±íÃû
-	while(SQL.GetAt(start)==' ')
+	while (SQL.at(start) == ' ')
 		start++;
-	end=SQL.Find('(',start);
-	temp=SQL.Mid(start,end-start);
-	start=end+1;
+	end = SQL.find_first_of('(', start);
+	temp = SQL.substr(start, end - start);
+	start = end + 1;
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 	if (start == 0 || temp.empty())
 	{
-		cout<<"syntax error: syntax error for create index statement!"<<endl;
-		cout<<"\t missing ( !"<<endl;
+		cout << "syntax error: syntax error for create index statement!" << endl;
+		cout << "\t missing ( !" << endl;
 		SQL="99";
 		return SQL;
 	}
 	else
 	{
 		//¼ìÑéÊÇ·ñÎªÓĞĞ§ÎÄ¼şÃû
-		length=temp.GetLength()-1;
-		while(temp.GetAt(length)==' ')
+		length = temp.length() - 1;
+		while (temp.at(length) == ' ')
 			length--;
-		temp=temp.Left(length+1);
+		temp = temp.substr(0, length + 1);
 		//ÓĞĞ§                            //?
-		if(temp.Find(' ')==-1)
+		if (temp.find(' ') == -1) // »¹Ğè¼ì²é±íÊÇ·ñ´æÔÚ
 		{
-			sql+=" "+temp;
+			sql += " " + temp;
 			//»ñÈ¡ÊôĞÔÃû
-			while(SQL.GetAt(start)==' ')
+			while (SQL.at(start) == ' ')
 				start++;
-			end=SQL.Find(')',start);
-			temp=SQL.Mid(start,end-start);
-			start=end+1;
+			end = SQL.find(')', start);
+			temp = SQL.substr(start, end - start);
+			start = end + 1;
 			//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 			if (start == 0 || temp.empty())
 			{
@@ -486,31 +477,31 @@ string create_index_on(string SQL,int start,string sql)
 			else
 			{
 				//¼ìÑéÊÇ·ñÎªÓĞĞ§ÊôĞÔÃû
-				length=temp.GetLength()-1;
-				while(temp.GetAt(length)==' ')
+				length = temp.length() - 1;
+				while (temp.at(length) == ' ')
 					length--;
-				temp=temp.Left(length+1);
+				temp = temp.substr(0, length + 1);
 				//ÓĞĞ§
-				if(temp.Find(' ')==-1)
+				if (temp.find(' ') == -1)	// »¹Ğè¼ì²â±íÖĞÊôĞÔÊÇ·ñ´æÔÚ
 				{
-					sql+=" "+temp;
-					while(SQL.GetAt(start)==' ')
+					sql += " " + temp;
+					while (SQL.at(start) == ' ')
 						start++;
-					if(SQL.GetAt(start)!=';'||start!=SQL.GetLength()-1)
+					if (SQL.at(start) != ';' || start != SQL.length() - 1)
 					{
-						cout<<"syntax error: syntax error for quit!"<<endl;
-						SQL="99";
+						cout << "syntax error: syntax error for create index on statement!" << endl;
+						SQL = "99";
 						return SQL;
 					}
 					//·µ»Øcreate indexÓï¾äµÄÄÚ²¿ĞÎÊ½
 					else
-						SQL="02"+sql;
+						SQL = "02" + sql;
 				}
 				//ÎŞĞ§,´òÓ¡³ö´íĞÅÏ¢
 				else
 				{
-					cout<<"error:"<<" "<<temp<<"---is not a valid attribute name!"<<endl;
-					SQL="99";
+					cout << "error:" << " " << temp << "---is not a valid attribute name!" << endl;
+					SQL = "99";
 					return SQL;
 				}
 			}
@@ -518,8 +509,8 @@ string create_index_on(string SQL,int start,string sql)
 		//ÎŞĞ§,´òÓ¡³ö´íĞÅÏ¢
 		else
 		{
-			cout<<"error:"<<" "<<temp<<"---is not a valid table name!"<<endl;
-			SQL="99";
+			cout << "error:" << " " << temp << "---is not a valid table name!" << endl;
+			SQL = "99";
 			return SQL;
 		}
 	}
@@ -534,13 +525,11 @@ string drop_clause(string SQL,int start)
 	string temp;
 	int end;
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);
-	start=end+1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
+	end = SQL.find_first_of(' ', start);
+	temp = SQL.substr(start, end - start);
+	start = end + 1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if(string)
+	if(start == 0 || temp.empty())
 	{
 		cout<<"syntax error: syntax error for drop statement!"<<endl;
 		SQL="99";
@@ -571,30 +560,26 @@ string drop_database(string SQL,int start)
 	string temp;
 	int end;
 	//»ñÈ¡µÚÈı¸öµ¥´Ê
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);
-	start=end+1;
+	end = SQL.find_first_of(';', start);
+	temp = SQL.substr(start, end - start);  //Êı¾İ¿âÃû
+	start = end + 1;  //start´ÓµÚËÄ¸ö´Ê¿ªÊ¼
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if(string)
+	if (start == 0 || temp.empty())
 	{
-		cout<<"error: database name has not been specified!"<<endl;
-		SQL="99";
+		cout << "error: database name has not been specified!" << endl;
+		SQL = "99";
 	}
 	else
 	{
-		while(SQL.GetAt(start)==' ')
-			start++;
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
-		if(SQL.GetAt(start)!=';'||start!=SQL.GetLength()-1)
+		if (SQL.at(end) != ';' || end != SQL.length() - 1)
 		{
-			cout<<"error:"<<SQL.Mid(index,SQL.GetLength()-index-2)<<"---is not a valid database name!"<<endl;
-			SQL="99";
+			cout << "error:" << temp << "---is not a valid database name!" << endl;
+			SQL = "99";
 		}
 		//·µ»Ødrop databaseÓï¾äµÄÄÚ²¿ĞÎÊ½
 		else
-			SQL="10"+temp;
+			SQL = "10" + temp;
 	}
 	return SQL;
 }
@@ -606,32 +591,26 @@ string drop_table(string SQL,int start)  //drop table ±íÃû ;
 	string temp;
 	int end;
 	//»ñÈ¡µÚÈı¸öµ¥´Ê
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);   //temp=tableÃû
-	start=end+1;
+	end = SQL.find_first_of(';', start);
+	temp = SQL.substr(start, end - start);  //Êı¾İ¿âÃû
+	start = end + 1;  //start´ÓµÚËÄ¸ö´Ê¿ªÊ¼
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-
-
-	if(string)
+	if (start == 0 || temp.empty())
 	{
-		cout<<"error: table name has not been specified!"<<endl;
-		SQL="99";
+		cout << "error: table name has not been specified!" << endl;
+		SQL = "99";
 	}
 	else
 	{
-		while(SQL.GetAt(start)==' ')
-			start++;
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
-		if(SQL.GetAt(start)!=';'||start!=SQL.GetLength()-1)
+		if (SQL.at(end) != ';' || end != SQL.length() - 1)
 		{
-			cout<<"error:"<<SQL.Mid(index,SQL.GetLength()-index-2)<<"---is not a valid table name!"<<endl;
-			SQL="99";
+			cout << "error:" << temp << "---is not a valid table name!" << endl;
+			SQL = "99";
 		}
 		//·µ»Ødrop tableÓï¾äµÄÄÚ²¿ĞÎÊ½
 		else
-			SQL="11"+temp;
+			SQL = "11" + temp;
 	}
 	return SQL;
 }
@@ -643,31 +622,27 @@ string drop_index(string SQL,int start)  //drop index Ë÷ÒıÃû ;
 	string temp;
 	int end;
 	//»ñÈ¡µÚÈı¸öµ¥´Ê
-	while(SQL.GetAt(start)==' ')
-		start++;
-	end=SQL.Find(' ',start);
-	temp=SQL.Mid(start,end-start);
-	start=end+1;
+	end = SQL.find_first_of(';', start);
+	temp = SQL.substr(start, end - start);  //Êı¾İ¿âÃû
+	start = end + 1;  //start´ÓµÚËÄ¸ö´Ê¿ªÊ¼
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 
-	if(string)
+	if (start == 0 || temp.empty())
 	{
-		cout<<"error: index name has not been specified!"<<endl;
-		SQL="99";
+		cout << "error: index name has not been specified!" << endl;
+		SQL = "99";
 	}
 	else
 	{
-		while(SQL.GetAt(start)==' ')
-			start++;
 		//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
-		if(SQL.GetAt(start)!=';'||start!=SQL.GetLength()-1)
+		if (SQL.at(end) != ';' || end != SQL.length() - 1)
 		{
-			cout<<"error:"<<SQL.Mid(index,SQL.GetLength()-index-2)<<"---is not a valid index name!"<<endl;
-			SQL="99";
+			cout << "error:" << temp << "---is not a valid index name!" << endl;
+			SQL = "99";
 		}
 		//·µ»Ødrop indexÓï¾äµÄÄÚ²¿ĞÎÊ½
 		else
-			SQL="12"+temp;
+			SQL = "12" + temp;
 	}
 	return SQL;
 }
@@ -676,14 +651,14 @@ string drop_index(string SQL,int start)  //drop index Ë÷ÒıÃû ;
 //ÑéÖ¤select Óï¾äÊÇ·ñÓĞĞ§
 string select_clause(string SQL,int start)
 {
-
+	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñµÃÊôĞÔ×é»òÎÄ¼ş×éµÄÃ¿Ò»Ïî
 string get_part(string temp,string sql,string kind)
 {
-
+	return sql;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -738,9 +713,9 @@ string insert_clause(string SQL, int start)  //insert into ±íÃû values ( Öµ1 , Ö
 			//»ñÈ¡µÚËÄ¸öµ¥´Ê
 			start = SQL.find_first_not_of(' ', start);
 			//index = start;
-			end = SQL.find(' ', start);
+			end = SQL.find_first_not_of(allchar, start);
 			temp = SQL.substr(start, end - start);  //temp = value
-			start = end + 1;                    //start = (
+			start = end;                    //start = (
 
 			//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 			if (temp.empty())
@@ -807,9 +782,9 @@ string insert_into_values(string SQL, int start, string sql)
 			}
 			else
 			{
-				//replace(temp.begin(), temp.end(), ' ', ''); // replace all 'x' to 'y'
+				//replace(temp.begin(), temp.end(), ' ', ''); // replace allchar 'x' to 'y'
 				SQL = "30" + sql + ' ' + temp;
-				cout << SQL;
+				//cout << SQL;
 			}
 		}
 	}
@@ -820,47 +795,47 @@ string insert_into_values(string SQL, int start, string sql)
 //ÑéÖ¤deleteÓï¾äÊÇ·ñÓĞĞ§
 string delete_clause(string SQL,int start)
 {
-
+	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤ delete from where Óï¾äÊÇ·ñÓĞĞ§
 string delete_from_where(string SQL,int start,string sql)
 {
-
+	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //½«±í´ïÊ½×ª»¯ÎªÄÚ²¿ĞÎÊ½
 string get_expression(string temp,string sql)
 {
-
+	return sql;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñÈ¡±í´ïÊ½×éµÄÃ¿¸ö±í´ïÊ½
 string get_each(string T,string sql,string condition)
 {
-
+	return sql;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤useÓï¾äÊÇ·ñÓĞĞ§
 string use_clause(string SQL,int start)
 {
-
+	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤execfileÓï¾äÊÇ·ñÓĞĞ§
 string execfile_clause(string SQL,int start)
 {
-
+	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤quitÓï¾äÊÇ·ñÓĞĞ§
 string quit_clause(string SQL,int start)
 {
-
+	return SQL;
 }

@@ -1,13 +1,16 @@
 #if !defined(_INTERPRETER_H_)
 #define _INTERPRETER_H_
 
-#include "Minisql.h"
+#include "MiniSQL.h"
+
+//获取用户输入
+string read_input();
 
 //获取用户输入，并对输入作有效性检查，若正确，返回语句的内部表示形式
-string Interpreter(string statement);
+string Interpreter();
 
-//读取用户输入
-string read_input();
+//改为小写
+string lower(string s);
 
 //验证create语句是否有效
 string create_clause(string SQL,int start);

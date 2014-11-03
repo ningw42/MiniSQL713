@@ -1,9 +1,9 @@
-#include"MiniSQL.h"
-#include"Interpreter.h"
-#include"API_Module.h"
+#include "MiniSQL.h"
+#include "Interpreter.h"
+//#include "API_Module.h"
 using namespace std;
 
-void main()
+int main(void)
 {
 	string SQL;
 	//打印软件信息
@@ -17,10 +17,11 @@ void main()
 	cout<<endl<<endl;
 	while(1)
 	{
-		cout<<"MiniSQL-->> ";
-		SQL.empty();
-		SQL=Interpreter(SQL);
-		API_Module(SQL);
+		cout << "MiniSQL-->> ";
+		SQL = Interpreter();
+		cout << SQL << endl;
+		//API_Module(SQL);
 	}
+	return 0;
 }
 
