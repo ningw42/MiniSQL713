@@ -226,9 +226,9 @@ string create_table(string SQL, int start)
 				//判断是否有关键字key
 				while (SQL.at(start) == ' ')
 					start++;
-				end = SQL.find_first_of('(', start);
+				end = SQL.find_first_not_of(allchar, start);
 				T = SQL.substr(start, end - start);
-				start = end + 1;
+				start = end;
 				
 				//若为空，打印出错信息
 				if(T.empty())
@@ -242,9 +242,9 @@ string create_table(string SQL, int start)
 				else if(T=="key")
 				{
 					//获取主键属性名
-					while (SQL.at(start) == ' ')
-						start++;
-					end = SQL.find(')', start);
+					start = SQL.find_first_of('(', start);
+					start = SQL.find_first_of(allchar, start);
+					end = SQL.find_first_not_of(allchar, start);
 					T = SQL.substr(start, end - start);
 					//若无，打印出错信息
 					if(T.empty())
@@ -256,7 +256,7 @@ string create_table(string SQL, int start)
 					//若为非法信息，打印出错信息
 					else if (T.find(' ') != -1 || (sql.find(T) == -1))
 					{
-						cout<<"error : "<<T<<"---is not a valid primary key attribute name!"<<endl;
+						cout << "error : " << T << "---is not a valid primary key attribute name!" << endl;
 						SQL="99";
 						return SQL;
 					}
