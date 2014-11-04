@@ -878,15 +878,80 @@ string insert_into_values(string SQL, int start, string sql)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //验证delete语句是否有效
-string delete_clause(string SQL,int start)
+string delete_clause(string SQL, int start)
 {
+	int end;
+	string temp;
+	string table;
+	end = SQL.find("from", start);
+	if (end == -1)
+	{
+		//没有from
+		cout << "syntax error: lack of 'from' " << endl;
+		SQL = "99";
+	}
+	else
+	{
+		start = end + 5;	//指向表名
+		end = SQL.find_first_not_of(allchar, start);
+		temp = SQL.substr(start, end - start);	//取表名，当表名缺失时取到where;
+		if (temp.empty() || temp == "where")
+		{
+			//表名为空
+			cout << "syntax error: please specify the target Table " << endl;
+			SQL = "99";
+		}
+		else
+		{
+			//有表名
+			table = temp;
+			//cout << table << endl;
+			start = end + 1;
+			end = SQL.find_first_not_of(allchar, start);
+			temp = SQL.substr(start, end - start);	//取到表名之后的串，可能是';'可能是'where'及其错误形式
+			//cout << start << endl << end << endl << temp << endl;
+			if (temp.empty() || temp == ";")
+			{
+				//无where正确出口;																			//TO-DO
+				SQL = "40" + table;
+			}
+			else if (temp == "where")
+			{
+				//有where正确出口;
+				start = end;
+				SQL = delete_from_where(SQL, start, table);
+			}
+			else
+			{
+				//where错误
+				cout << "syntax error: lack of 'where' " << endl;
+				SQL = "99";
+			}
+		}
+	}
 	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //验证 delete from where 语句是否有效
-string delete_from_where(string SQL,int start,string sql)
+string delete_from_where(string SQL, int start, string sql)
 {
+	int end;
+	string temp;
+
+	end = SQL.find_first_of(';', start);
+	temp = SQL.substr(start, end - start);
+	temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//去空格
+
+	if (temp.empty())
+	{
+		cout << "syntax error: please specify condition " << endl;
+		SQL = "99";
+	}
+	else
+	{
+		//where 正确出口;
+	}
 	return SQL;
 }
 
