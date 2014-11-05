@@ -1,6 +1,6 @@
 #include "Interpreter.h"
 using namespace std;
-string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñÈ¡ÓÃ»§ÊäÈë£¬²¢¶ÔÊäÈë×÷ÓĞĞ§ĞÔ¼ì²é£¬ÈôÕıÈ·£¬·µ»ØÓï¾äµÄÄÚ²¿±íÊ¾ĞÎÊ½
@@ -8,47 +8,47 @@ string Interpreter()
 {
 	string SQL;
 	string temp;
-	int start=0, end;
+	int start = 0, end;
 	SQL = read_input();
 	//»ñÈ¡ÊäÈëµÄµÚÒ»¸öµ¥´Ê
-	start = SQL.find_first_not_of(' ',0);
+	start = SQL.find_first_not_of(' ', 0);
 	end = SQL.find_first_not_of(allchar, start);
 	temp = SQL.substr(start, end - start);//µÚÒ»¸ö´Ê
 	//»ñÈ¡µÚ¶ş¸öµ¥´Ê
 	start = end + 1;
 
 	//ÈôÎªcreateÓï¾ä
-	if(temp=="create")
-		SQL=create_clause(SQL,start);
+	if (temp == "create")
+		SQL = create_clause(SQL, start);
 	//ÈôÎªdropÓï¾ä
-	else if(temp=="drop")
-		SQL=drop_clause(SQL,start);
+	else if (temp == "drop")
+		SQL = drop_clause(SQL, start);
 	//ÈôÎªselectÓï¾ä
-	else if(temp=="select")
-		SQL=select_clause(SQL,start);
+	else if (temp == "select")
+		SQL = select_clause(SQL, start);
 	//ÈôÎªinsertÓï¾ä
-	else if(temp=="insert")
-		SQL=insert_clause(SQL,start);
+	else if (temp == "insert")
+		SQL = insert_clause(SQL, start);
 	//ÈôÎªdeleteÓï¾ä
-	else if(temp=="delete")
-		SQL=delete_clause(SQL,start);
+	else if (temp == "delete")
+		SQL = delete_clause(SQL, start);
 	//ÈôÎªuseÓï¾ä
-	else if(temp=="use")
-		SQL=use_clause(SQL,start);
+	else if (temp == "use")
+		SQL = use_clause(SQL, start);
 	//ÈôÎªexecfileÓï¾ä
-	else if(temp=="execfile")
-		SQL=execfile_clause(SQL,start);
+	else if (temp == "execfile")
+		SQL = execfile_clause(SQL, start);
 	//ÈôÎªquitÓï¾ä
-	else if(temp=="quit")
-		SQL=quit_clause(SQL,start);
+	else if (temp == "quit")
+		SQL = quit_clause(SQL, start);
 	//»ñÈ¡°ïÖú
-	else if(temp=="help")
-		SQL="80";
+	else if (temp == "help")
+		SQL = "80";
 	//ÈôÎª·Ç·¨Óï¾ä
 	else
 	{
-		cout<<"syntax error:"<<" "<<temp<<"---is not a valid key word!"<<endl;
-		SQL="99";
+		cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
+		SQL = "99";
 	}
 	//·µ»ØÊäÈëÓï¾äµÄÄÚ²¿ĞÎÊ½
 	return SQL;
@@ -66,8 +66,8 @@ string read_input()
 	{
 		cin >> temp;
 		SQL = SQL + ' ' + temp;
-		if (SQL.at(SQL.length()-1) == ';'){
-			SQL.erase(0,1);
+		if (SQL.at(SQL.length() - 1) == ';'){
+			SQL.erase(0, 1);
 			finish = true;
 		}
 	}
@@ -87,7 +87,7 @@ string lower(string s)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤createÓï¾äÊÇ·ñÓĞĞ§
-string create_clause(string SQL,int start)
+string create_clause(string SQL, int start)
 {
 	string temp;
 	int end;
@@ -100,22 +100,22 @@ string create_clause(string SQL,int start)
 	if (start == 0 || temp.empty())
 	{
 		cout << "syntax error: syntax error for create statement!" << endl;
-		SQL="99";
+		SQL = "99";
 	}
 	//ÈôÎªdatabase,¼ÌĞøÑéÖ¤
-	else if(temp=="database")
-		SQL=create_database(SQL,start);
+	else if (temp == "database")
+		SQL = create_database(SQL, start);
 	//ÈôÎªtable,¼ÌĞøÑéÖ¤
-	else if(temp=="table")
-		SQL=create_table(SQL,start);
+	else if (temp == "table")
+		SQL = create_table(SQL, start);
 	//ÈôÎªindex,¼ÌĞøÑéÖ¤
-	else if(temp=="index")
-		SQL=create_index(SQL,start);
+	else if (temp == "index")
+		SQL = create_index(SQL, start);
 	//ÈôÎª´íÎóĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 	else
 	{
 		cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
-		SQL="99";
+		SQL = "99";
 	}
 	//·µ»ØcreateÓï¾äµÄÄÚ²¿ĞÎÊ½
 	return SQL;
@@ -208,7 +208,7 @@ string create_table(string SQL, int start)
 		end = SQL.find_last_of(')');
 		temp = SQL.substr(start, end - start);
 		//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-		if(temp.empty())
+		if (temp.empty())
 		{
 			cout << "error: error in create table statement!" << endl;
 			SQL = "99";
@@ -231,15 +231,15 @@ string create_table(string SQL, int start)
 				start = end;
 
 				//ÈôÎª¿Õ£¬´òÓ¡³ö´íĞÅÏ¢
-				if(T.empty())
+				if (T.empty())
 				{
 					cout << "syntax error: syntax error in create table statement!" << endl;
 					cout << "\t missing key word key!" << endl;
-					SQL="99";
+					SQL = "99";
 					return SQL;
 				}
 				//ÈôÓĞ£¬¼ÌĞøÑéÖ¤
-				else if(T=="key")
+				else if (T == "key")
 				{
 					//»ñÈ¡Ö÷¼üÊôĞÔÃû
 					start = SQL.find_first_of('(', start);
@@ -247,24 +247,24 @@ string create_table(string SQL, int start)
 					end = SQL.find_first_not_of(allchar, start);
 					T = SQL.substr(start, end - start);
 					//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-					if(T.empty())
+					if (T.empty())
 					{
-						cout<<"error : missing primary key attribute name!"<<endl;
-						SQL="99";
+						cout << "error : missing primary key attribute name!" << endl;
+						SQL = "99";
 						return SQL;
 					}
 					//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 					else if (T.find(' ') != -1 || (sql.find(T) == -1))
 					{
 						cout << "error : " << T << "---is not a valid primary key attribute name!" << endl;
-						SQL="99";
+						SQL = "99";
 						return SQL;
 					}
 					//±£´æÖ÷¼ü
 					else
 					{
 						sql += T + " #,";
-						SQL="01"+sql;
+						SQL = "01" + sql;
 					}
 				}
 				//ÈôÎª·Ç·¨ĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
@@ -285,7 +285,7 @@ string create_table(string SQL, int start)
 					return SQL;
 				}
 				else
-					SQL="01"+sql;
+					SQL = "01" + sql;
 			}
 		}
 	}
@@ -385,12 +385,12 @@ string get_attribute(string temp, string sql)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤create indexÓï¾äÊÇ·ñÓĞĞ§
-string create_index(string SQL,int start)
+string create_index(string SQL, int start)
 {
 	string temp, sql;
 	int end;
 	//»ñÈ¡µÚÈı¸öµ¥´Ê
-	while(SQL.at(start)==' ')
+	while (SQL.at(start) == ' ')
 		start++;
 	end = SQL.find_first_of(' ', start);
 	temp = SQL.substr(start, end - start);
@@ -409,7 +409,7 @@ string create_index(string SQL,int start)
 			start++;
 		end = SQL.find_first_of(' ', start);
 		temp = SQL.substr(start, end - start);
-		start=end+1;
+		start = end + 1;
 		//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 		if (start == 0 || temp.empty())
 		{
@@ -431,7 +431,7 @@ string create_index(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤create index onÓï¾äÊÇ·ñÓĞĞ§
-string create_index_on(string SQL,int start,string sql)
+string create_index_on(string SQL, int start, string sql)
 {
 	string temp;
 	int end, length;
@@ -446,7 +446,7 @@ string create_index_on(string SQL,int start,string sql)
 	{
 		cout << "syntax error: syntax error for create index statement!" << endl;
 		cout << "\t missing ( !" << endl;
-		SQL="99";
+		SQL = "99";
 		return SQL;
 	}
 	else
@@ -469,9 +469,9 @@ string create_index_on(string SQL,int start,string sql)
 			//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
 			if (start == 0 || temp.empty())
 			{
-				cout<<"syntax error: syntax error for create index statement!"<<endl;
-				cout<<"\t missing ) !"<<endl;
-				SQL="99";
+				cout << "syntax error: syntax error for create index statement!" << endl;
+				cout << "\t missing ) !" << endl;
+				SQL = "99";
 				return SQL;
 			}
 			else
@@ -519,7 +519,7 @@ string create_index_on(string SQL,int start,string sql)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤dropÓï¾äÊÇ·ñÓĞĞ§
-string drop_clause(string SQL,int start)
+string drop_clause(string SQL, int start)
 {
 
 	string temp;
@@ -529,25 +529,25 @@ string drop_clause(string SQL,int start)
 	temp = SQL.substr(start, end - start);
 	start = end + 1;  //start´ÓµÚÈı¸ö´Ê¿ªÊ¼
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if(start == 0 || temp.empty())
+	if (start == 0 || temp.empty())
 	{
-		cout<<"syntax error: syntax error for drop statement!"<<endl;
-		SQL="99";
+		cout << "syntax error: syntax error for drop statement!" << endl;
+		SQL = "99";
 	}
 	//ÈôÎªdatabase,¼ÌĞøÑéÖ¤
-	else if(temp=="database")
-		SQL=drop_database(SQL,start);
+	else if (temp == "database")
+		SQL = drop_database(SQL, start);
 	//ÈôÎªtable,¼ÌĞøÑéÖ¤
-	else if(temp=="table")
-		SQL=drop_table(SQL,start);
+	else if (temp == "table")
+		SQL = drop_table(SQL, start);
 	//ÈôÎªindex,¼ÌĞøÑéÖ¤
-	else if(temp=="index")
-		SQL=drop_index(SQL,start);
+	else if (temp == "index")
+		SQL = drop_index(SQL, start);
 	//ÈôÎª´íÎóĞÅÏ¢£¬´òÓ¡³ö´íĞÅÏ¢
 	else
 	{
-		cout<<"syntax error:"<<" "<<temp<<"---is not a valid key word!"<<endl;
-		SQL="99";
+		cout << "syntax error:" << " " << temp << "---is not a valid key word!" << endl;
+		SQL = "99";
 	}
 	//·µ»ØdropÓï¾äµÄÄÚ²¿ĞÎÊ½
 	return SQL;
@@ -555,7 +555,7 @@ string drop_clause(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤drop databaseÓï¾äÊÇ·ñÓĞĞ§
-string drop_database(string SQL,int start)
+string drop_database(string SQL, int start)
 {
 	string temp;
 	int end;
@@ -586,7 +586,7 @@ string drop_database(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤drop tableÓï¾äÊÇ·ñÓĞĞ§
-string drop_table(string SQL,int start)  //drop table ±íÃû ;
+string drop_table(string SQL, int start)  //drop table ±íÃû ;
 {
 	string temp;
 	int end;
@@ -617,7 +617,7 @@ string drop_table(string SQL,int start)  //drop table ±íÃû ;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤drop indexÓï¾äÊÇ·ñÓĞĞ§
-string drop_index(string SQL,int start)  //drop index Ë÷ÒıÃû ;
+string drop_index(string SQL, int start)  //drop index Ë÷ÒıÃû ;
 {
 	string temp;
 	int end;
@@ -649,7 +649,7 @@ string drop_index(string SQL,int start)  //drop index Ë÷ÒıÃû ;
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤select Óï¾äÊÇ·ñÓĞĞ§
-string select_clause(string SQL,int start)
+string select_clause(string SQL, int start)
 {
 	int end;
 	string temp;
@@ -676,62 +676,85 @@ string select_clause(string SQL,int start)
 		{
 			attr = temp;
 			start = SQL.find_first_of(allchar, start);
-			end = SQL.find_first_of(' ', start);
-			table = SQL.substr(start, end - start);	//±íÃû
-
-
-			//cout << attr << endl << start << endl << end << endl << table << endl;
-
-			start = end + 1;
 			end = SQL.find_first_not_of(allchar, start);
-			temp = SQL.substr(start, end - start);	//È¡where
-
-			if (temp != "where")	//ÊÇ·ñÓĞwhere
+			if (end == -1)
 			{
-				//ÎŞwhere£»
-				if (end < SQL.length() - 1)
-				{
-					//È±ÉÙ´ı²é±í
-					cout << "syntax error: might be 'where' " << endl;
-					SQL = "99";
-				}
-				else
-				{
-					//ÎŞwhereµÄÕıÈ·Óï¾ä£»																	//	TO-DO
-				}
+				cout << "syntax error: please specify the Table" << endl;
+				SQL = "99";
 			}
 			else
 			{
-				//ÓĞwhere£»
-				//cout << temp << endl;
-				if (table.empty())
+				table = SQL.substr(start, end - start);	//±íÃû
+				//cout << attr << endl << start << endl << end << endl << table << endl;
+
+				if (table == "where")
 				{
-					//È±ÉÙ´ı²é±í
-					cout << "syntax error: please specify the tables" << endl;
+					cout << "syntax error: please specify the Table" << endl;
 					SQL = "99";
+					return SQL;
 				}
-				else
+				start = end + 1;
+				end = SQL.find_first_not_of(allchar, start);
+				temp = SQL.substr(start, end - start);	//È¡where
+
+				if (temp != "where")	//ÊÇ·ñÓĞwhere
 				{
-					//ÓĞ´ı²é±í
-					start = end + 1;
-					temp = SQL.substr(start, SQL.length() - start - 1);
-
-
-					//cout << start << endl << end << endl << temp << endl;
-
-
-
-					temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//È¥¿Õ¸ñ
-					if (temp.empty())	//ÊÇ·ñÓĞwhereÌõ¼ş
+					//ÎŞwhere£»
+					if (end < SQL.length() - 1)
 					{
-						//È±ÉÙwhereÌõ¼ş
-						cout << "syntax error: please specify the condition or remove 'where' " << endl;
+						//È±ÉÙ´ı²é±í»òÕß'where'Æ´Ğ´ÓĞÎó
+						cout << "syntax error: please specify the Table or may be something wrong with 'where' " << endl;
 						SQL = "99";
 					}
 					else
 					{
-						//ÓĞwhereÌõ¼ş
-						condition = temp;																//	TO-DO
+						//ÎŞwhereµÄÕıÈ·Óï¾ä£»																	//	TO-DO
+						//cout << "fuck" << endl;
+						SQL = "20" + table + ' ' + attr;
+					}
+				}
+				else
+				{
+					//ÓĞwhere£»
+					//cout << temp << endl;
+					if (table.empty())
+					{
+						//È±ÉÙ´ı²é±í
+						cout << "syntax error: please specify the tables" << endl;
+						SQL = "99";
+					}
+					else
+					{
+						//ÓĞ´ı²é±í
+						start = end + 1;
+						temp = SQL.substr(start, SQL.length() - start - 1);
+
+						size_t index = 0;
+						while (true) {	//Ìæ»»" and "Îª','
+
+							index = temp.find(" and ", index);
+							//cout << temp << endl << index << endl;
+							if (index == string::npos) break;
+
+							temp.replace(index, 5, ",");
+
+							index += 1;
+						}
+
+						//cout << start << endl << end << endl << temp << endl;
+						temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//È¥¿Õ¸ñ
+						if (temp.empty())	//ÊÇ·ñÓĞwhereÌõ¼ş
+						{
+							//È±ÉÙwhereÌõ¼ş
+							cout << "syntax error: please specify the condition or remove 'where' " << endl;
+							SQL = "99";
+						}
+						else
+						{
+							//ÓĞwhereÌõ¼ş
+							condition = temp;
+							SQL = "21" + table + ' ' + attr + ' ' + condition;
+						}
 					}
 				}
 			}
@@ -743,7 +766,7 @@ string select_clause(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñµÃÊôĞÔ×é»òÎÄ¼ş×éµÄÃ¿Ò»Ïî
-string get_part(string temp,string sql,string kind)
+string get_part(string temp, string sql, string kind)
 {
 	return sql;
 }
@@ -761,7 +784,7 @@ string insert_clause(string SQL, int start)  //insert into ±íÃû values ( Öµ1 , Ö
 
 	start = end + 1;
 	//ÈôÎŞ£¬´òÓ¡³ö´íĞÅÏ¢
-	if ( start == 0 || temp.empty())
+	if (start == 0 || temp.empty())
 	{
 		cout << "syntax error: can't find the keyword 'into' " << endl;
 		SQL = "99";
@@ -941,6 +964,19 @@ string delete_from_where(string SQL, int start, string sql)
 
 	end = SQL.find_first_of(';', start);
 	temp = SQL.substr(start, end - start);
+
+	size_t index = 0;
+	while (true) {	//Ìæ»»" and "Îª','
+
+		index = temp.find(" and ", index);
+		//cout << temp << endl << index << endl;
+		if (index == string::npos) break;
+
+		temp.replace(index, 5, ",");
+
+		index += 1;
+	}
+
 	temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//È¥¿Õ¸ñ
 
 	if (temp.empty())
@@ -951,27 +987,28 @@ string delete_from_where(string SQL, int start, string sql)
 	else
 	{
 		//where ÕıÈ·³ö¿Ú;
+		SQL = "41" + sql + ' ' + temp;
 	}
 	return SQL;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //½«±í´ïÊ½×ª»¯ÎªÄÚ²¿ĞÎÊ½
-string get_expression(string temp,string sql)
+string get_expression(string temp, string sql)
 {
 	return sql;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //»ñÈ¡±í´ïÊ½×éµÄÃ¿¸ö±í´ïÊ½
-string get_each(string T,string sql,string condition)
+string get_each(string T, string sql, string condition)
 {
 	return sql;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤useÓï¾äÊÇ·ñÓĞĞ§
-string use_clause(string SQL,int start)
+string use_clause(string SQL, int start)
 {
 	string temp;
 	int end;
@@ -1004,7 +1041,7 @@ string use_clause(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤execfileÓï¾äÊÇ·ñÓĞĞ§
-string execfile_clause(string SQL,int start)
+string execfile_clause(string SQL, int start)
 {
 	string temp;
 	int end;
@@ -1037,7 +1074,7 @@ string execfile_clause(string SQL,int start)
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ÑéÖ¤quitÓï¾äÊÇ·ñÓĞĞ§
-string quit_clause(string SQL,int start)
+string quit_clause(string SQL, int start)
 {
 	SQL = "70";
 	return SQL;
