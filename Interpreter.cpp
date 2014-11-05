@@ -730,14 +730,19 @@ string select_clause(string SQL, int start)
 						temp = SQL.substr(start, SQL.length() - start - 1);
 
 						size_t index = 0;
-						while (true) {	//替换" and "为','
-
+						while (true) {	//替换" and "为'&'
 							index = temp.find(" and ", index);
 							//cout << temp << endl << index << endl;
 							if (index == string::npos) break;
-
-							temp.replace(index, 5, ",");
-
+							temp.replace(index, 5, "&");
+							index += 1;
+						}
+						index = 0;
+						while (true) {	//替换" or "为'|'
+							index = temp.find(" or ", index);
+							//cout << temp << endl << index << endl;
+							if (index == string::npos) break;
+							temp.replace(index, 5, "|");
 							index += 1;
 						}
 
@@ -881,6 +886,7 @@ string insert_into_values(string SQL, int start, string sql)
 		else
 		{
 			temp = SQL.substr(start, end - start);  //temp = ( 值1 , 值2 , … , 值n )
+			temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());	//去空格
 			start = end + 1;
 			//若无，打印出错
 			if (temp.empty())
@@ -971,9 +977,15 @@ string delete_from_where(string SQL, int start, string sql)
 		index = temp.find(" and ", index);
 		//cout << temp << endl << index << endl;
 		if (index == string::npos) break;
-
-		temp.replace(index, 5, ",");
-
+		temp.replace(index, 5, "&");
+		index += 1;
+	}
+	index = 0;
+	while (true) {	//替换" or "为'|'
+		index = temp.find(" or ", index);
+		//cout << temp << endl << index << endl;
+		if (index == string::npos) break;
+		temp.replace(index, 5, "|");
 		index += 1;
 	}
 
