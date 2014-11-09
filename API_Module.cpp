@@ -1,7 +1,7 @@
-#include"API_Module.h"
-#include"Catalog_Manager.h"
-#include"Record_Manager.h"
-#include"Index_Manager.h"
+#include "API_Module.h"
+#include "Catalog_Manager.h"
+#include "Record_Manager.h"
+#include "Index_Manager.h"
 
 string DB_Name;
 
@@ -146,8 +146,3 @@ void API_Module(string SQL)
 	/////////////////////////////////////////////////////////////////////////////////////////
 	//选择语句(有where子句)
 	else if(Type=="21")
-	{
-
-
-
-	后面程序删除了。
