@@ -15,7 +15,7 @@ public:
 	CatalogManager();
 	~CatalogManager();
 	Table &createTable(string name, string primarykey);
-	bool insertAttri(Table& table, string attriName, int type, int length, bool isPrimaryKey = false, bool isUnique = false);
+	//bool insertAttri(Table& table, string attriName, int type, int length, bool isPrimaryKey = false, bool isUnique = false);
 	bool initiaTable(Table& table);
 	bool createIndex(string indexName, string tableName, string attriName);
 	int findTable(string tableName);

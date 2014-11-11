@@ -3,7 +3,7 @@
 
 #include "MiniSQL.h"
 
-void  API_Module(string SQL);
+void API_Module(string SQL);
 
 //œ‘ æ∞Ô÷˙–≈œ¢
 void Help();
