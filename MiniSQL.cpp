@@ -1,6 +1,8 @@
 #include "MiniSQL.h"
 #include "Interpreter.h"
+#include "Catalog_Manager.h"
 //#include "API_Module.h"
+
 using namespace std;
 
 int main(void)
@@ -15,14 +17,15 @@ int main(void)
 	cout<<"\t\t**     copyright(2014) all right reserved!     **"<<endl;
 	cout<<"\t\t*************************************************"<<endl;
 	cout<<endl<<endl;
+	CatalogManager c;
 	while(1)
 	{
 		cout << "MiniSQL-->> ";
 		SQL = Interpreter();
-		cout << SQL << endl;
 		SQLstatement s(SQL);
-		//s.outputinfo();
-		//API_Module(SQL);
+		c.API_Catalog(s);
+		/*s.outputinfo();
+		API_Module(SQL);*/
 	}
 	return 0;
 }

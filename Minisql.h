@@ -80,6 +80,7 @@ public:
 	Table(string name, string primaryKey) :name(name), primaryKey(primaryKey){}
 };
 
+// Óï¾äÀà
 class SQLstatement
 {
 public:
