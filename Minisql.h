@@ -79,4 +79,21 @@ public:
 	Table(){}
 	Table(string name, string primaryKey) :name(name), primaryKey(primaryKey){}
 };
+
+class SQLstatement
+{
+public:
+	STATEMENT_TYPE type;
+	string tableName;
+	vector<Attribute> attributes;
+	vector<Condition> conditions;
+	//vector<RELATION_TYPE> relations;
+	string content;
+
+	SQLstatement(STATEMENT_TYPE type, string tableName);
+	SQLstatement(string SQL);
+	~SQLstatement();
+	void outputinfo();
+	STATEMENT_TYPE identify(string type_code);
+};
 #endif

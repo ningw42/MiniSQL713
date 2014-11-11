@@ -20,6 +20,8 @@ int main(void)
 		cout << "MiniSQL-->> ";
 		SQL = Interpreter();
 		cout << SQL << endl;
+		SQLstatement s(SQL);
+		//s.outputinfo();
 		//API_Module(SQL);
 	}
 	return 0;

@@ -2,7 +2,7 @@
 
 int CatalogManager :: findTable(string tableName)
 {
-	for (int i = 0; i < tableList.size; i++)
+	for (int i = 0; i < tableList.size(); i++)
 	{
 		if (tableList[i].name == tableName)
 		{
@@ -10,9 +10,4 @@ int CatalogManager :: findTable(string tableName)
 		}
 	}
 	return -1;
-}
-
-Table & CatalogManager :: createTable(string name, string primarykey)
-{
-	Table * table = new Table(name, primarykey);
 }
