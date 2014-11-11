@@ -33,12 +33,12 @@ public:
 };
 
 
-class File
+class Table
 {
 	friend class bufferManager;
 	friend class buffer;
 
-	File(): blockNum(0), attriNum(0),length(0){};
+	Table(): blockNum(0), attriNum(0),length(0){};
 private:
 	string name;
 	int blockNum;
@@ -50,7 +50,7 @@ class Attribute
 {
 	friend class bufferManager;
 	friend class buffer;
-	friend class File;
+	friend class Table;
 
 	Attribute()
 	{
@@ -88,10 +88,10 @@ private:
 	void LRU(int bufferNum);//LRU
 	int getEmptyBuffer(); //得到一个空的buffer的序号（如果buffer满了按照LRU进行替换）
 	int getEmptyBufferExcept(string filename); //得到一个空的buffer的序号(替换的时候不替换包含特定filename数据的buffer
-	insertPos getInsertPosition(File& fileinformation);//  如果想向某文件进行写入，调用这个函数获得写入位置
-	int addBlockInFile(File& fileinformation);//  为一个文件在buffer中新开辟一个块（为了写入）
-	int addBlockInFile(Index& indexinfor) ; //为一个index文件在buffer中新开辟一个块（为了写入）
-	void scanIn(File fil); //将整个文件读入buffer中
+	insertPos getInsertPosition(Table& fileinformation);//  如果想向某文件进行写入，调用这个函数获得写入位置
+	int addBlockInFile(Table& fileinformation);//  为一个文件在buffer中新开辟一个块（为了写入）
+	int addBlockInFile(Table& indexinfor) ; //为一个index文件在buffer中新开辟一个块（为了写入）
+	void scanIn(Table fil); //将整个文件读入buffer中
 	void setInvalid(string filename); //如果文件被删除，将里面的所有相关块置为invalid
 };
 
