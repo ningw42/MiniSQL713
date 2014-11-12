@@ -4,12 +4,10 @@ string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 //获取用户输入，并对输入作有效性检查，若正确，返回语句的内部表示形式
-string Interpreter()
+string Interpreter(string SQL)
 {
-	string SQL;
 	string temp;
 	int start = 0, end;
-	SQL = read_input();
 	//获取输入的第一个单词
 	start = SQL.find_first_not_of(' ', 0);
 	end = SQL.find_first_not_of(allchar, start);
@@ -52,37 +50,6 @@ string Interpreter()
 	}
 	//返回输入语句的内部形式
 	return SQL;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-//获取用户输入
-string read_input()
-{
-	string SQL;
-	string temp;
-	bool finish = false;
-	SQL = "";
-	while (!finish)
-	{
-		cin >> temp;
-		SQL = SQL + ' ' + temp;
-		if (SQL.at(SQL.length() - 1) == ';'){
-			SQL.erase(0, 1);
-			finish = true;
-		}
-	}
-	//将输入大写转化为小写
-	SQL = lower(SQL);
-	//返回用户输入
-	return SQL;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-//改为小写
-string lower(string s)
-{
-	transform(s.begin(), s.end(), s.begin(), ::tolower);
-	return s;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,8 @@
+create table t1
+(
+a1 int unique,
+a2 float,
+a3 char(20),
+primary key(a2)
+);
+insert into t1 values(1, 1.0, 'abc');

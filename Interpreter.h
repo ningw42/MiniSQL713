@@ -3,14 +3,8 @@
 
 #include "MiniSQL.h"
 
-//获取用户输入
-string read_input();
-
 //获取用户输入，并对输入作有效性检查，若正确，返回语句的内部表示形式
-string Interpreter();
-
-//改为小写
-string lower(string s);
+string Interpreter(string SQL);
 
 //验证create语句是否有效
 string create_clause(string SQL,int start);

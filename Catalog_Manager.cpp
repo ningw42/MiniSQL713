@@ -18,6 +18,22 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 			}
 		}
 	}
+	else if (sql.type == DROP_TABLE){
+		Table *t = findTable(sql.tableName);
+		if (t){
+			
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
+	}
+	else if (sql.type == SELECT){
+
+	}
+	else if (sql.type == SELECT_WHERE){
+
+	}
 	else if (sql.type == INSERT){
 		Table *t = findTable(sql.tableName);
 		if (t){
@@ -32,6 +48,12 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 			cout << sql.tableName << " not exist." << endl;
 			return false;
 		}
+	}
+	else if (sql.type == DELETE){
+
+	}
+	else if (sql.type == DELETE_WHERE){
+
 	}
 }
 
@@ -95,6 +117,7 @@ bool CatalogManager::checkInsert(Table *t, string value)
 				return false;
 			}
 		}
+		cout << "right insert statement." << endl;
 		return true;
 	}
 	else{

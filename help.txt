@@ -1,0 +1,23 @@
+create table tablename
+(
+	attribute type ,
+	attribute type ,
+	attribute type ,
+	primary key(attribute)
+);
+
+drop table tablename;
+
+create index indexname on tablename(attribute);
+
+drop index indexname;
+
+select * from tablename where condition;
+
+insert into tablename values (v1, v2, v3);
+
+delete from tablename where condition;
+
+quit;
+
+execfile filename;
