@@ -57,22 +57,27 @@ void APIMoudule::API(SQLstatement s)
 
 	}
 	else if (s.type == EXECFILE){
-		fstream fin("sql.txt");
-		string sql;
-		string temp;
-		bool finish = false;
-		sql = "";
-		while (fin >> temp){
-			sql = sql + ' ' + temp;
-			if (sql.at(sql.length() - 1) == ';'){
-				sql.erase(0, 1);
-				sql = lower(sql);
-				cout << sql << endl;
-				sql = Interpreter(sql);
-				SQLstatement s(sql);
-				API(s);
-				sql = "";
+		fstream fin(s.tableName);
+		if (fin){
+			string sql;
+			string temp;
+			bool finish = false;
+			sql = "";
+			while (fin >> temp){
+				sql = sql + ' ' + temp;
+				if (sql.at(sql.length() - 1) == ';'){
+					sql.erase(0, 1);
+					sql = lower(sql);
+					cout << sql << endl;
+					sql = Interpreter(sql);
+					SQLstatement s(sql);
+					API(s);
+					sql = "";
+				}
 			}
+		}
+		else{
+			cout << "no such file." << endl;
 		}
 	}
 	else if (s.type == QUIT){
