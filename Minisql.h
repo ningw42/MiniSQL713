@@ -44,6 +44,7 @@ public:
 	bool isUnique = false;
 
 	Attribute(){}
+	Attribute(string name) :name(name){}
 	Attribute(string name, TYPE type, int length, bool isPrimaryKey = false, bool isUnique = false) :name(name), type(type), length(length), isPrimaryKey(isPrimaryKey), isUnique(isUnique){}
 };
 
@@ -96,6 +97,8 @@ public:
 	SQLstatement(string SQL);
 	~SQLstatement();
 	void outputinfo();
+	Condition genCondition(string exp);
+	RELATION_TYPE getRelationType(string oper);
 	STATEMENT_TYPE identify(string type_code);
 };
 #endif
