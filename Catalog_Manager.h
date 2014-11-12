@@ -20,9 +20,9 @@ public:
 	void update_tableNum();
 	bool save_tableInfo(vector<Table> &tl);
 	bool checkType(Attribute *a, string v);
-	bool checkSelect_attribute(Table *t, vector<Attribute> *a);
-	bool checkSelect_condition(Table *t, vector<Condition> *c);
-	
+	bool checkAttribute(Table *t, vector<Attribute> *a);
+	bool checkCondition(Table *t, vector<Condition> *c);
+
 	//bool insertAttri(Table& table, string attriName, int type, int length, bool isPrimaryKey = false, bool isUnique = false);
 	//bool initiaTable(Table& table);
 	bool createIndex(string indexName, string tableName, string attriName);

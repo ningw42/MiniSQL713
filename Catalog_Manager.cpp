@@ -4,7 +4,7 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 {
 	if (sql.type == CREATE_TABLE){
 		if (findTable(sql.tableName)){
-			cout << sql.tableName << " has been created." << endl;
+			cout << sql.tableName << " existed." << endl;
 			return false;
 		}
 		else{
@@ -18,10 +18,33 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 			}
 		}
 	}
+	else if (sql.type == CREATE_INDEX){
+		Table *t = findTable(sql.tableName);
+		if (t){
+			// µ÷index
+			// createindex();
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
+	}
 	else if (sql.type == DROP_TABLE){
 		Table *t = findTable(sql.tableName);
 		if (t){
-			
+			// µ÷index
+			// droptable();
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
+	}
+	else if (sql.type == DROP_INDEX){
+		Table *t = findTable(sql.tableName);
+		if (t){
+			// µ÷index
+			// droptable();
 		}
 		else{
 			cout << sql.tableName << " not exist." << endl;
@@ -31,7 +54,7 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 	else if (sql.type == SELECT){
 		Table *t = findTable(sql.tableName);
 		if (t){
-			if (checkSelect_attribute(t, &sql.attributes)){
+			if (checkAttribute(t, &sql.attributes)){
 				return true;
 			}
 			else{
@@ -46,7 +69,7 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 	else if (sql.type == SELECT_WHERE){
 		Table *t = findTable(sql.tableName);
 		if (t){
-			if (checkSelect_attribute(t, &sql.attributes) && checkSelect_condition(t, &sql.conditions)){
+			if (checkAttribute(t, &sql.attributes) && checkCondition(t, &sql.conditions)){
 				return true;
 			}
 			else{
@@ -74,10 +97,29 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 		}
 	}
 	else if (sql.type == DELETE){
-
+		Table *t = findTable(sql.tableName);
+		if (t){
+			return true;
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
 	}
 	else if (sql.type == DELETE_WHERE){
-
+		Table *t = findTable(sql.tableName);
+		if (t){
+			if (checkCondition(t, &sql.conditions)){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
 	}
 }
 
@@ -149,7 +191,7 @@ bool CatalogManager::checkInsert(Table *t, string value)
 	}
 }
 
-bool CatalogManager::checkSelect_attribute(Table *t, vector<Attribute> *a)
+bool CatalogManager::checkAttribute(Table *t, vector<Attribute> *a)
 {
 	vector<Attribute>::iterator iter;
 	for (iter = a->begin(); iter != a->end(); iter++){
@@ -172,7 +214,7 @@ bool CatalogManager::checkSelect_attribute(Table *t, vector<Attribute> *a)
 	return true;
 }
 
-bool CatalogManager::checkSelect_condition(Table *t, vector<Condition> *c)
+bool CatalogManager::checkCondition(Table *t, vector<Condition> *c)
 {
 	vector<Condition>::iterator iter;
 	for (iter = c->begin(); iter != c->end(); iter++){

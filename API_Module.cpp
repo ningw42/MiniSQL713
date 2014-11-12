@@ -15,13 +15,28 @@ void APIMoudule::API(SQLstatement s)
 		}
 	}
 	else if (s.type == CREATE_INDEX){
-
+		if (cm.API_Catalog(s)){
+			// 调index
+		}
+		else{
+			cout << "create index failed" << endl;
+		}
 	}
 	else if (s.type == DROP_TABLE){
-
+		if (cm.API_Catalog(s)){
+			// 调index和record
+		}
+		else{
+			cout << "drop table failed" << endl;
+		}
 	}
 	else if (s.type == DROP_INDEX){
-
+		if (cm.API_Catalog(s)){
+			// 调index
+		}
+		else{
+			cout << "create index failed" << endl;
+		}
 	}
 	else if (s.type == SELECT){
 		if (cm.API_Catalog(s)){
@@ -51,10 +66,22 @@ void APIMoudule::API(SQLstatement s)
 		}
 	}
 	else if (s.type == DELETE){
-
+		if (cm.API_Catalog(s)){
+			cout << "right delete statement." << endl;
+			// 调record和index
+		}
+		else{
+			cout << "insert failed." << endl;
+		}
 	}
 	else if (s.type == DELETE_WHERE){
-
+		if (cm.API_Catalog(s)){
+			cout << "right delete where statement." << endl;
+			// 调record和index
+		}
+		else{
+			cout << "insert failed." << endl;
+		}
 	}
 	else if (s.type == EXECFILE){
 		fstream fin(s.tableName);
