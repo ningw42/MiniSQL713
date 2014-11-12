@@ -18,7 +18,10 @@ inline TYPE getType(string s)
 void SQLstatement::outputinfo()
 {
 	cout << "----------Table----------" << endl;
-	cout << tableName << endl;
+	cout << "SQL type : " << type << endl;
+	cout << "tableName : " << tableName << endl;
+	cout << "indexName : " << indexName << endl;
+	cout << "insert value : " << content << endl;
 	cout << "---------Attribute---------" << endl;
 	for (size_t i = 0; i < attributes.size(); i++)
 	{
@@ -44,6 +47,7 @@ RELATION_TYPE SQLstatement::getRelationType(string oper)
 	else if (oper == ">=") return GREATER_EQUAL;
 	else if (oper == "<=") return SMALLER_EQUAL;
 	else if (oper == "!=") return NOT_EQUAL;
+	// 有个坑 ： 操作符不合法没有处理；					TO-DO
 }
 Condition SQLstatement::genCondition(string exp)
 {
@@ -212,15 +216,29 @@ SQLstatement::SQLstatement(string SQL)
 			start = end + 1;
 		}
 		break;
-	case CREATE_INDEX:break;
+	case CREATE_INDEX:
+		end = SQL.find_first_of(' ', start);
+		indexName = SQL.substr(start, end - start);
+		start = end + 1;	// 读取index名
+		end = SQL.find_first_of(' ', start);
+		tableName = SQL.substr(start, end - start);
+		start = end + 1;
+		attributes.push_back(Attribute(SQL.substr(start)));
+		break;
 	case DROP_DATABASE:break;
 	case DROP_TABLE:
 		tableName = SQL.substr(start);
 		// 读取表名
 		break;
-	case DROP_INDEX:break;
+	case DROP_INDEX:
+		indexName = SQL.substr(start);
+		// 取得indexName
+		break;
 	case USE:break;
-	case EXECFILE:break;
+	case EXECFILE:
+		tableName = SQL.substr(start);
+		// 用tableName存放执行的文件名
+		break;
 	case QUIT:break;
 	case HELP:break;
 	default:break;

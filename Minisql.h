@@ -88,6 +88,7 @@ class SQLstatement
 public:
 	STATEMENT_TYPE type;
 	string tableName;
+	string indexName;
 	vector<Attribute> attributes;
 	vector<Condition> conditions;
 	//vector<RELATION_TYPE> relations;
