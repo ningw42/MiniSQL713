@@ -5,6 +5,7 @@ using namespace std;
 #include<string>
 #include<fstream> 
 #include<vector>
+#include"Minisql.h"
 
 #define BLOCKSIZE 1000
 #define MAXBLOCKNUMBER 1000
@@ -12,7 +13,7 @@ using namespace std;
 class buffer{
 	friend class bufferManager;
 	buffer();
-private:
+public:
 	string filename;
 	int blockOffset;
 	int LRU;
@@ -33,39 +34,8 @@ public:
 };
 
 
-class Table
-{
-	friend class bufferManager;
-	friend class buffer;
 
-	Table(): blockNum(0), attriNum(0),length(0){};
-private:
-	string name;
-	int blockNum;
-	int attriNum;
-	int length;
-	vector<Attribute> attrilist;
-};
-class Attribute
-{
-	friend class bufferManager;
-	friend class buffer;
-	friend class Table;
 
-	Attribute()
-	{
-	 isPrimeryKey=false;
-	 isUnique=false;
-	}
-	Attribute(string n, int t, int l, bool isP, bool isU)
-		:name(n), type(t), length(l), isPrimeryKey(isP), isUnique(isU){};
-	private:
-	string name;
-	int type;
-	int length;
-	bool isPrimeryKey;
-	bool isUnique;
-};
 
 
 class bufferManager{

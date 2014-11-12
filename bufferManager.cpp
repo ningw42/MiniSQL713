@@ -2,6 +2,7 @@
 #include<iostream>
 #include<fstream> 
 #include<vector>
+#include"bufferManager.h"
 
 
 #define  BLOCKSIZE  1000
@@ -54,33 +55,8 @@ public:
 	int position;
 };
 
-class Table
-{
-public:
-	string name;   //all the datas is store in file name.table
-	int blockNum;	//number of block the datas of the table occupied in the file name.table
-	int attriNum;	//the number of attributes in the tables
-	int totalLength;	//total length of one record, should be equal to sum(attributes[i].length)
-	vector<Attribute1> attributes;
-	Table(): blockNum(0), attriNum(0), totalLength(0){}
-};
 
-class Attribute1
-{
-public:
-	string name;
-	int type;
-	int length;
-	bool isPrimeryKey;
-	bool isUnique;
-	Attribute1()
-	{
-	 isPrimeryKey=false;
-	 isUnique=false;
-	}
-	Attribute1(string n, int t, int l, bool isP, bool isU)
-		:name(n), type(t), length(l), isPrimeryKey(isP), isUnique(isU){}
-};
+
 
 class BufferManager{
 public:
@@ -203,7 +179,7 @@ public:
 			return ipos;
 		}
 		string filename = tableinfo.name + ".table";
-		int length = tableinfo.totalLength + 1;
+		int length = tableinfo.tupleLength + 1;
 		int blockOffset = tableinfo.blockNum - 1;
 		int bufferNum = getIfIsInBuffer(filename, blockOffset);
 		if(bufferNum ==-1){
