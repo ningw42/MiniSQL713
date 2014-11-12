@@ -17,16 +17,48 @@ inline TYPE getType(string s)
 }
 void SQLstatement::outputinfo()
 {
+	cout << "----------Table----------" << endl;
+	cout << tableName << endl;
+	cout << "---------Attribute---------" << endl;
 	for (size_t i = 0; i < attributes.size(); i++)
 	{
-		cout << tableName << endl;
 		cout << "name: " << attributes[i].name << endl;
 		cout << "type: " << attributes[i].type << endl;
 		cout << "length: " << attributes[i].length << endl;
 		cout << "isPrimary: " << attributes[i].isPrimaryKey << endl;
 		cout << "isUnique: " << attributes[i].isUnique << endl;
 	}
+	cout << "----------Conditions----------" << endl;
+	for (size_t i = 0; i < conditions.size(); i++)
+	{
+		cout << "attrName : " << conditions[i].attribute.name << endl;
+		cout << "relation type : " << conditions[i].relationType << endl;
+		cout << "value : " << conditions[i].value << endl;
+	}
 }
+RELATION_TYPE SQLstatement::getRelationType(string oper)
+{
+	if (oper == "=") return EQUAL;
+	else if (oper == ">") return GREATER;
+	else if (oper == "<") return SMALLER;
+	else if (oper == ">=") return GREATER_EQUAL;
+	else if (oper == "<=") return SMALLER_EQUAL;
+	else if (oper == "!=") return NOT_EQUAL;
+}
+Condition SQLstatement::genCondition(string exp)
+{
+	string op = "<>=!";
+	int front = exp.find_first_of(op, 0);
+	int end = exp.find_first_not_of(op, front);
+
+	string attrName = exp.substr(0, front);
+	RELATION_TYPE relationType = getRelationType(exp.substr(front, end - front));
+	string value = exp.substr(end);
+
+	//cout << attr << endl << oper << endl << value << endl;
+	return Condition(Attribute(attrName), value, relationType);
+}
+
 STATEMENT_TYPE SQLstatement::identify(string type_code)
 {
 	if (type_code == "99") return ILLEGAL;
@@ -58,24 +90,92 @@ SQLstatement::SQLstatement(string SQL)
 	switch (this->type)
 	{
 	case SELECT:
-		end = SQL.find_first_of(',', start);
+		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
+		start = end + 1;
+
+		while (true)
+		{
+			if (!start) break;
+			end = SQL.find_first_of(',', start);
+			temp = SQL.substr(start, end - start);
+			// select属性添加
+			attributes.push_back(Attribute(temp));
+			start = end + 1;
+		}
 		break;
-	case SELECT_WHERE:break;
+	case SELECT_WHERE:
+		int conditionstart;	// 记录条件开始位置
+		end = SQL.find_first_of(' ', start);
+		tableName = SQL.substr(start, end - start);
+		start = end + 1;
+		conditionstart = SQL.find_first_of(' ', start);
+		//cout << conditionstart << endl;
+
+		// 属性解析
+		while (true)
+		{
+			if (!start) break;
+			end = SQL.find_first_of(',', start);
+			if (end == -1)
+				temp = SQL.substr(start, conditionstart - start);
+			else
+				temp = SQL.substr(start, end - start);
+			// select属性添加
+			attributes.push_back(Attribute(temp));
+			start = end + 1;
+		}
+
+		// 条件解析
+		start = conditionstart + 1;
+		while (true)
+		{
+			if (!start) break;	// 条件取完
+			end = SQL.find_first_of("&|", start);
+			temp = SQL.substr(start, end - start);	// 取条件
+
+			// 生成并放入vector
+			conditions.push_back(genCondition(temp));
+
+			start = end + 1;
+		}
+		break;
 	case INSERT:
 		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
 		start = end + 1;	// 读取表名
+		// insert内容
 		content = SQL.substr(start);
-		//cout << temp << endl;
 		break;
-	case DELETE:break;
-	case DELETE_WHERE:break;
+	case DELETE:
+		tableName = SQL.substr(start);
+		// 读取表名
+		break;
+	case DELETE_WHERE:
+		end = SQL.find_first_of(' ', start);
+		tableName = SQL.substr(start, end - start);
+		start = end + 1; 
+		
+		// where条件生成
+		while (true)
+		{
+			if (!start) break;	// 条件取完
+			end = SQL.find_first_of("&|", start);
+			temp = SQL.substr(start, end - start);	// 取条件
+
+			// 生成并放入vector
+			conditions.push_back(genCondition(temp));
+
+			start = end + 1;
+		}
+		break;
 	case CREATE_DATABASE:break;
 	case CREATE_TABLE:
 		end = SQL.find_first_of(',', start);
 		tableName = SQL.substr(start, end - start); 
 		start = end + 1;	// 读取表名
+
+		// 属性解析
 		while (true)
 		{
 			int first, second;
@@ -114,7 +214,10 @@ SQLstatement::SQLstatement(string SQL)
 		break;
 	case CREATE_INDEX:break;
 	case DROP_DATABASE:break;
-	case DROP_TABLE:break;
+	case DROP_TABLE:
+		tableName = SQL.substr(start);
+		// 读取表名
+		break;
 	case DROP_INDEX:break;
 	case USE:break;
 	case EXECFILE:break;
