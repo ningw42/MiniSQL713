@@ -29,10 +29,34 @@ bool CatalogManager::API_Catalog(SQLstatement sql)
 		}
 	}
 	else if (sql.type == SELECT){
-
+		Table *t = findTable(sql.tableName);
+		if (t){
+			if (checkSelect_attribute(t, &sql.attributes)){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
 	}
 	else if (sql.type == SELECT_WHERE){
-
+		Table *t = findTable(sql.tableName);
+		if (t){
+			if (checkSelect_attribute(t, &sql.attributes) && checkSelect_condition(t, &sql.conditions)){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}
+		else{
+			cout << sql.tableName << " not exist." << endl;
+			return false;
+		}
 	}
 	else if (sql.type == INSERT){
 		Table *t = findTable(sql.tableName);
@@ -117,13 +141,55 @@ bool CatalogManager::checkInsert(Table *t, string value)
 				return false;
 			}
 		}
-		cout << "right insert statement." << endl;
 		return true;
 	}
 	else{
 		cout << "wrong values number." << endl;
 		return false;
 	}
+}
+
+bool CatalogManager::checkSelect_attribute(Table *t, vector<Attribute> *a)
+{
+	vector<Attribute>::iterator iter;
+	for (iter = a->begin(); iter != a->end(); iter++){
+		if (iter->name == "*"){
+			return true;
+		}
+		vector<Attribute>::iterator iter2;
+		bool flag = false;
+		for (iter2 = t->attributes.begin(); iter2 != t->attributes.end(); iter2++){
+			if (iter->name == iter2->name){
+				flag = true;
+				break;
+			}
+		}
+		if (flag == false){
+			cout << "wrong attribute." << endl;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool CatalogManager::checkSelect_condition(Table *t, vector<Condition> *c)
+{
+	vector<Condition>::iterator iter;
+	for (iter = c->begin(); iter != c->end(); iter++){
+		vector<Attribute>::iterator iter2;
+		bool flag = false;
+		for (iter2 = t->attributes.begin(); iter2 != t->attributes.end(); iter2++){
+			if (iter->attribute.name == iter2->name){
+				flag = true;
+				break;
+			}
+		}
+		if (flag == false){
+			cout << "wrong condition." << endl;
+			return false;
+		}
+	}
+	return true;
 }
 
 void CatalogManager::pushBack_tableList(Table &t)

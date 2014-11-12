@@ -6,16 +6,15 @@ extern CatalogManager cm;
 
 void APIMoudule::API(SQLstatement s)
 {
-	if (s.type == CREATE_DATABASE){
-
-	}
-	else if (s.type == CREATE_TABLE){
-		cm.API_Catalog(s);
+	if (s.type == CREATE_TABLE){
+		if (cm.API_Catalog(s)){
+			// 调record
+		}
+		else{
+			cout << "create table failed" << endl;
+		}
 	}
 	else if (s.type == CREATE_INDEX){
-
-	}
-	else if (s.type == DROP_DATABASE){
 
 	}
 	else if (s.type == DROP_TABLE){
@@ -25,21 +24,36 @@ void APIMoudule::API(SQLstatement s)
 
 	}
 	else if (s.type == SELECT){
-
+		if (cm.API_Catalog(s)){
+			cout << "right select statement." << endl;
+			// 调index和record
+		}
+		else{
+			cout << "select failed." << endl;
+		}
 	}
 	else if (s.type == SELECT_WHERE){
-
+		if (cm.API_Catalog(s)){
+			cout << "right select where statement." << endl;
+			// 调index和record
+		}
+		else{
+			cout << "select failed." << endl;
+		}
 	}
 	else if (s.type == INSERT){
-		cm.API_Catalog(s);
+		if (cm.API_Catalog(s)){
+			cout << "right insert statement." << endl;
+			// 调record和index
+		}
+		else{
+			cout << "insert failed." << endl;
+		}
 	}
 	else if (s.type == DELETE){
 
 	}
 	else if (s.type == DELETE_WHERE){
-
-	}
-	else if (s.type == USE){
 
 	}
 	else if (s.type == EXECFILE){
