@@ -9,6 +9,7 @@
 #include <direct.h>
 #include <algorithm>
 #include <vector>
+#include <map>
 using namespace std;
 
 #define FILE_COUNTER 1
