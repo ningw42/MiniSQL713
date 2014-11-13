@@ -5,6 +5,7 @@ a2 float,
 a3 char(20),
 primary key(a2)
 );
+create index i1 on t1(a1);
 insert into t1 values(1, 1.0, 'abc');
 select * from t1;
 select a1,a2 from t1;
@@ -12,3 +13,5 @@ select a1 from t1 where a1>1;
 select a1, a2 from t1 where a1>1 and a3<'bbb';
 delete from t1;
 delete from t1 where a1<>1 and a2>1.9;
+drop index i1;
+drop table t1;
