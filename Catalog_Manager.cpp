@@ -170,7 +170,7 @@ bool CatalogManager::createTable(SQLstatement sql)
 	table->name = sql.tableName;
 	pushBack_tableList(*table);
 	update_tableNum();
-	return save_tableInfo(tableList, add);
+	return save_tableInfo(table, add);
 }
 
 bool CatalogManager::checkInsert(Table *t, string value)
@@ -262,11 +262,6 @@ void CatalogManager::update_tableNum()
 	tableNum++;
 }
 
-bool CatalogManager::save_tableInfo(vector<Table> &tl, bool add)
-{
-	return true;
-}
-
 bool CatalogManager::checkType(Attribute *a, string v)
 {
 	TYPE vt;
@@ -336,10 +331,74 @@ bool CatalogManager::dropTable(Table *t)
 	vector<Table>::iterator iter;
 	for (iter = tableList.begin(); iter != tableList.end();)
 	{
-		if (iter->name == t->name)
+		if (iter->name == t->name){
+			Table *t = &(*iter);
 			iter = tableList.erase(iter);
+			if (!save_tableInfo(t, add)){
+				return false;
+			}
+			delete t;
+			break;
+		}
 		else
 			iter++;
 	}
-	return save_tableInfo(tableList, add);
+	return true;
+}
+
+bool CatalogManager::save_tableInfo(Table *t, bool add)
+{
+	if (add){
+		ofstream fout(t->name, ios::trunc);
+		if (fout){
+			vector<Attribute>::iterator iter;
+			for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
+				writeAttribute(t->name, &(*iter));
+				fout << t->attriNum << endl;
+				fout << t->blockNum << endl;
+				fout << t->primaryKey << endl;
+				fout << t->recordNum << endl;
+				fout << t->tupleLength << endl;
+			}
+			return true;
+		}
+		else{
+			cout << "open file failed." << endl;
+			return false;
+		}
+	}
+	else{
+		ofstream fout(t->name, ios::_Nocreate);
+		if (fout){
+			
+		}
+		else{
+			cout << "open file failed." << endl;
+			return false;
+		}
+		/*vector<Table>::iterator iter;
+		for (iter = tl.begin(); iter != tl.end(); iter++){
+			ofstream fout(iter->name, ios::);
+			vector<Attribute>::iterator iter2;
+			for (iter2 = iter->attributes.begin(); iter2 != iter->attributes.end(); iter2++){
+				writeAttribute(iter->name, &(*iter2));
+				fout << iter->attriNum << endl;
+				fout << iter->blockNum << endl;
+				fout << iter->primaryKey << endl;
+				fout << iter->recordNum << endl;
+				fout << iter->tupleLength << endl;
+			}
+		}*/
+	}
+}
+
+void CatalogManager::writeAttribute(string fn, Attribute *a)
+{
+	ofstream fout(fn);
+	fout << a->indexName << endl;
+	fout << a->isPrimaryKey << endl;
+	fout << a->isUnique << endl;
+	fout << a->length << endl;
+	fout << a->name << endl;
+	fout << a->type << endl;
 }
