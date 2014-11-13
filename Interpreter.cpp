@@ -1,4 +1,5 @@
 #include "Interpreter.h"
+
 using namespace std;
 string allchar = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
 

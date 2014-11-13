@@ -10,12 +10,16 @@
 #include <algorithm>
 #include <vector>
 #include <map>
+
+
 using namespace std;
 
 #define FILE_COUNTER 1
 #define FILE_INFO_LENGTH 671
 #define ATTR_INFO_LENGTH 20
 #define FILE_HEAD_LENGTH 31
+
+typedef map< string, vector<string> > SelectReturnList;
 
 enum TYPE { INT = 0, FLOAT = 1, CHAR = 2 };
 enum RELATION_TYPE { EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, SMALLER, SMALLER_EQUAL, AND, OR};

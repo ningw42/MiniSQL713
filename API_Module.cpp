@@ -1,6 +1,6 @@
 #include "API_Module.h"
-#include "Interpreter.h"
 #include "Catalog_Manager.h"
+#include "Interpreter.h"
 
 extern CatalogManager cm;
 

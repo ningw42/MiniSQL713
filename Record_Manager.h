@@ -1,8 +1,8 @@
 #ifndef __RECORD_MANAGER_H__
 #define __RECORD_MANAGER_H__
-#include "Minisql.h"
 
-typedef map< string, vector<string> > SelectReturnList;
+#include "MiniSQL.h"
+
 class RecordManager
 {
 public:

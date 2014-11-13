@@ -1,13 +1,12 @@
 #include "MiniSQL.h"
+#include "Record_Manager.h"
 #include "Interpreter.h"
 #include "API_Module.h"
 #include "Catalog_Manager.h"
-#include "bufferManager.h"
 using namespace std;
 
 APIMoudule api;
 CatalogManager cm;
-bufferManager bm;
 
 int main(void)
 {

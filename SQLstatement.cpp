@@ -1,4 +1,5 @@
 #include "MiniSQL.h"
+
 inline bool isUnique(string s)
 {
 	if (s == "1")
