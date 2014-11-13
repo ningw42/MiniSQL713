@@ -1,6 +1,7 @@
 #include "Catalog_Manager.h"
+#include "dirent.h"
 
-bool CatalogManager::API_Catalog(SQLstatement sql)
+bool CatalogManager::API_Catalog(SQLstatement &sql)
 {
 	if (sql.type == CREATE_TABLE){
 		if (findTable(sql.tableName)){
@@ -153,7 +154,7 @@ Table* CatalogManager::findTable(string tn)
 	return NULL;
 }
 
-bool CatalogManager::createTable(SQLstatement sql)
+bool CatalogManager::createTable(SQLstatement &sql)
 {
 	bool add = true;
 	Table *table = new Table();
@@ -169,7 +170,7 @@ bool CatalogManager::createTable(SQLstatement sql)
 	}
 	table->name = sql.tableName;
 	pushBack_tableList(*table);
-	update_tableNum();
+	update_tableNum(add);
 	return save_tableInfo(table, add);
 }
 
@@ -257,20 +258,25 @@ void CatalogManager::pushBack_tableList(Table &t)
 	tableList.push_back(t);
 }
 
-void CatalogManager::update_tableNum()
+void CatalogManager::update_tableNum(bool add)
 {
-	tableNum++;
+	if (add){
+		tableNum++;
+	}
+	else{
+		tableNum--;
+	}
 }
 
 bool CatalogManager::checkType(Attribute *a, string v)
 {
 	TYPE vt;
 	if (v.find("'") == 0)
-		vt = CHAR;
+		vt = TYPE::MYCHAR;
 	else if (v.find('.') != string::npos)
-		vt = FLOAT;
+		vt = TYPE::MYFLOAT;
 	else
-		vt = INT;
+		vt = TYPE::MYINT;
 	if (a->type == vt){
 		return true;
 	}
@@ -333,10 +339,11 @@ bool CatalogManager::dropTable(Table *t)
 	{
 		if (iter->name == t->name){
 			Table *t = &(*iter);
-			iter = tableList.erase(iter);
 			if (!save_tableInfo(t, add)){
 				return false;
 			}
+			iter = tableList.erase(iter);
+			update_tableNum(add);
 			delete t;
 			break;
 		}
@@ -349,56 +356,112 @@ bool CatalogManager::dropTable(Table *t)
 bool CatalogManager::save_tableInfo(Table *t, bool add)
 {
 	if (add){
-		ofstream fout(t->name, ios::trunc);
+		ofstream fout;
+		fout.open("./cm/" + t->name, ios::trunc);
 		if (fout){
 			vector<Attribute>::iterator iter;
+			fout.close();
 			for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
 				writeAttribute(t->name, &(*iter));
-				fout << t->attriNum << endl;
-				fout << t->blockNum << endl;
-				fout << t->primaryKey << endl;
-				fout << t->recordNum << endl;
-				fout << t->tupleLength << endl;
 			}
+			fout.open("./cm/" + t->name, ios::_Nocreate | ios::app);
+			fout << ";" << endl;
+			fout << t->attriNum << endl;
+			fout << t->blockNum << endl;
+			fout << t->primaryKey << endl;
+			fout << t->recordNum << endl;
+			fout << t->tupleLength << endl;
+			fout.close();
 			return true;
 		}
 		else{
 			cout << "open file failed." << endl;
+			fout.close();
 			return false;
 		}
 	}
 	else{
-		ofstream fout(t->name, ios::_Nocreate);
-		if (fout){
-			
-		}
-		else{
-			cout << "open file failed." << endl;
+		if (remove(("./cm/" + t->name).c_str())){
+			cout << t->name << " not exist." << endl;
 			return false;
 		}
-		/*vector<Table>::iterator iter;
-		for (iter = tl.begin(); iter != tl.end(); iter++){
-			ofstream fout(iter->name, ios::);
-			vector<Attribute>::iterator iter2;
-			for (iter2 = iter->attributes.begin(); iter2 != iter->attributes.end(); iter2++){
-				writeAttribute(iter->name, &(*iter2));
-				fout << iter->attriNum << endl;
-				fout << iter->blockNum << endl;
-				fout << iter->primaryKey << endl;
-				fout << iter->recordNum << endl;
-				fout << iter->tupleLength << endl;
-			}
-		}*/
+		else{
+			cout << t->name << " removed." << endl;
+			return true;
+		}
 	}
 }
 
 void CatalogManager::writeAttribute(string fn, Attribute *a)
 {
-	ofstream fout(fn);
-	fout << a->indexName << endl;
-	fout << a->isPrimaryKey << endl;
-	fout << a->isUnique << endl;
-	fout << a->length << endl;
-	fout << a->name << endl;
-	fout << a->type << endl;
+	ofstream fout;
+	fout.open("./cm/" + fn, ios::_Nocreate | ios::app);
+	if (fout){
+		fout << ":" << endl;
+		fout << a->indexName << endl;
+		fout << (a->isPrimaryKey ? "1" : "0") << endl;
+		fout << (a->isUnique ? "1":"0") << endl;
+		fout << a->length << endl;
+		fout << a->name << endl;
+		fout << static_cast<int>(a->type) << endl;
+	}
+	else{
+		cout << fn << "not exist." << endl;
+	}
+	fout.close();
+}
+
+void CatalogManager::read_TableInfo()
+{
+	DIR *dir;
+	struct dirent *ent;
+	if ((dir = opendir("./cm/")) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			string fn(ent->d_name);
+			ifstream fin("./cm/" + fn, ios::_Nocreate);
+			if (fin){
+				vector<Attribute> va;
+				Table *t = new Table();
+				string s;
+				getline(fin, s);
+				if (s == ""){
+					cout << "wrong file." << endl;
+					exit(0);
+				}
+				while (s == ":"){
+					Attribute *a = new Attribute();
+					getline(fin, a->indexName);
+					getline(fin, s);
+					a->isPrimaryKey = (s == "1") ? true : false;
+					getline(fin, s);
+					a->isUnique = (s == "1") ? true : false;
+					getline(fin, s);
+					a->length = stoi(s);
+					getline(fin, a->name);
+					getline(fin, s);
+					a->type = TYPE(stoi(s));
+					getline(fin, s);
+					va.push_back(*a);
+				}
+				t->attributes = va;
+				vector<Attribute>(va).swap(va);
+				getline(fin, s);
+				t->attriNum = stoi(s);
+				getline(fin, s);
+				t->blockNum = stoi(s);
+				t->name = fn;
+				getline(fin, t->primaryKey);
+				getline(fin, s);
+				t->recordNum = stoi(s);
+				getline(fin, s);
+				t->tupleLength = stoi(s);
+				tableList.push_back(*t);
+			}
+		}
+		closedir(dir);
+	}
+	else {
+		cout << "directory cm not exist." << endl;
+	}
+	tableNum = tableList.size();
 }

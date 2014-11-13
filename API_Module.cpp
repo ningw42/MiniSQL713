@@ -4,7 +4,7 @@
 
 extern CatalogManager cm;
 
-void APIMoudule::API(SQLstatement s)
+void APIMoudule::API(SQLstatement &s)
 {
 	if (s.type == CREATE_TABLE){
 		if (cm.API_Catalog(s)){

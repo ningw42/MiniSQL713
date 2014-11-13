@@ -11,13 +11,13 @@ class CatalogManager
 public:
 	CatalogManager(){};
 	~CatalogManager(){};
-	bool API_Catalog(SQLstatement sql);
+	bool API_Catalog(SQLstatement &sql);
 
 	Table* findTable(string tn);
-	bool createTable(SQLstatement sql);
+	bool createTable(SQLstatement &sql);
 	bool checkInsert(Table *t, string value);
 	void pushBack_tableList(Table &t);
-	void update_tableNum();
+	void update_tableNum(bool add);
 	bool checkType(Attribute *a, string v);
 	bool checkAttribute(Table *t, vector<Attribute> *a);
 	bool checkCondition(Table *t, vector<Condition> *c);
@@ -27,6 +27,7 @@ public:
 	bool dropTable(Table *t);
 	bool save_tableInfo(Table *t, bool add);
 	void writeAttribute(string fn, Attribute *a);
+	void read_TableInfo();
 	
 	//bool insertAttri(Table& table, string attriName, int type, int length, bool isPrimaryKey = false, bool isUnique = false);
 	//bool initiaTable(Table& table);

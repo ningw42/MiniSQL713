@@ -8,7 +8,7 @@ class APIMoudule
 public:
 	APIMoudule(){};
 	~APIMoudule(){};
-	void API(SQLstatement s);
+	void API(SQLstatement &s);
 	void getHelp();
 	//获取用户输入
 	string read_input();

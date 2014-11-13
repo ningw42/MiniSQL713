@@ -176,7 +176,7 @@ string create_table(string SQL, int start)
 		end = SQL.find_last_of(')');
 		temp = SQL.substr(start, end - start);
 		//若无，打印出错信息
-		if (temp.empty())
+		if (temp.empty() || temp.find_last_of(')') == string::npos)
 		{
 			cout << "error: error in create table statement!" << endl;
 			SQL = "99";

@@ -21,7 +21,7 @@ using namespace std;
 
 typedef map< string, vector<string> > SelectReturnList;
 
-enum TYPE { INT = 0, FLOAT = 1, CHAR = 2 };
+enum TYPE { MYINT = 0, MYFLOAT = 1, MYCHAR = 2 };
 enum RELATION_TYPE { EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, SMALLER, SMALLER_EQUAL, AND, OR};
 enum STATEMENT_TYPE { CREATE_DATABASE, CREATE_TABLE, CREATE_INDEX, DROP_TABLE, DROP_INDEX, DROP_DATABASE, SELECT, SELECT_WHERE, INSERT, DELETE, DELETE_WHERE, USE, EXECFILE, QUIT, HELP, ILLEGAL};
 
@@ -43,7 +43,7 @@ public:
 	friend class Table;
 	string name = "";
 	string indexName = "";      //indexÃû
-	TYPE type = INT;
+	TYPE type = MYINT;
 	int length = 0;
 	bool isPrimaryKey = false;
 	bool isUnique = false;

@@ -10,11 +10,11 @@ inline bool isUnique(string s)
 inline TYPE getType(string s)
 {
 	if (s == "+")
-		return INT;
+		return MYINT;
 	else if (s == "-")
-		return FLOAT;
+		return MYFLOAT;
 	else
-		return CHAR;
+		return MYCHAR;
 }
 void SQLstatement::outputinfo()
 {
@@ -208,7 +208,7 @@ SQLstatement::SQLstatement(string SQL)
 				TYPE attrtype = getType(SQL.substr(first + 1, second - first - 1));
 				bool attrisUnique = isUnique(SQL.substr(second + 1, end - second - 1));
 				int length = 4;
-				if (attrtype == CHAR)
+				if (attrtype == MYCHAR)
 				{
 					length = atoi(SQL.substr(first + 1, second - first - 1).c_str());
 				}

@@ -20,4 +20,4 @@ delete from tablename where condition;
 
 quit;
 
-execfile filename;
+execfile sql.txt;
