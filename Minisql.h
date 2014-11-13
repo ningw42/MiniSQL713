@@ -44,6 +44,7 @@ public:
 	bool isUnique = false;
 
 	Attribute(){}
+	Attribute(const Attribute & from) :name(from.name), indexName(from.indexName), type(from.type), length(from.length), isPrimaryKey(from.isPrimaryKey), isUnique(from.isUnique){}
 	Attribute(string name) :name(name){}
 	Attribute(string name, TYPE type, int length, bool isPrimaryKey = false, bool isUnique = false) :name(name), type(type), length(length), isPrimaryKey(isPrimaryKey), isUnique(isUnique){}
 };
