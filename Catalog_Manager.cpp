@@ -242,11 +242,18 @@ bool CatalogManager::checkCondition(Table *t, vector<Condition> *c)
 		for (iter2 = t->attributes.begin(); iter2 != t->attributes.end(); iter2++){
 			if (iter->attribute.name == iter2->name){
 				flag = true;
-				break;
+				if (checkType(&(*iter2), iter->value)){
+					iter->attribute.type = iter2->type;
+					break;
+				}
+				else{
+					cout << "wrong value type." << endl;
+					return false;
+				}
 			}
 		}
 		if (flag == false){
-			cout << "wrong condition." << endl;
+			cout << "wrong attribute name." << endl;
 			return false;
 		}
 	}
