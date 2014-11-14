@@ -1,4 +1,4 @@
-#include "MiniSQL.h"
+ï»¿#include "MiniSQL.h"
 
 inline bool isUnique(string s)
 {
@@ -48,7 +48,7 @@ RELATION_TYPE SQLstatement::getRelationType(string oper)
 	else if (oper == ">=") return GREATER_EQUAL;
 	else if (oper == "<=") return SMALLER_EQUAL;
 	else if (oper == "!=") return NOT_EQUAL;
-	// ÓÐ¸ö¿Ó £º ²Ù×÷·û²»ºÏ·¨Ã»ÓÐ´¦Àí£»					TO-DO
+	// æœ‰ä¸ªå‘ ï¼š æ“ä½œç¬¦ä¸åˆæ³•æ²¡æœ‰å¤„ç†ï¼›					TO-DO
 }
 Condition SQLstatement::genCondition(string exp)
 {
@@ -104,20 +104,20 @@ SQLstatement::SQLstatement(string SQL)
 			if (!start) break;
 			end = SQL.find_first_of(',', start);
 			temp = SQL.substr(start, end - start);
-			// selectÊôÐÔÌí¼Ó
+			// selectå±žæ€§æ·»åŠ 
 			attributes.push_back(Attribute(temp));
 			start = end + 1;
 		}
 		break;
 	case SELECT_WHERE:
-		int conditionstart;	// ¼ÇÂ¼Ìõ¼þ¿ªÊ¼Î»ÖÃ
+		int conditionstart;	// è®°å½•æ¡ä»¶å¼€å§‹ä½ç½®
 		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
 		start = end + 1;
 		conditionstart = SQL.find_first_of(' ', start);
 		//cout << conditionstart << endl;
 
-		// ÊôÐÔ½âÎö
+		// å±žæ€§è§£æž
 		while (true)
 		{
 			if (!start) break;
@@ -126,20 +126,20 @@ SQLstatement::SQLstatement(string SQL)
 				temp = SQL.substr(start, conditionstart - start);
 			else
 				temp = SQL.substr(start, end - start);
-			// selectÊôÐÔÌí¼Ó
+			// selectå±žæ€§æ·»åŠ 
 			attributes.push_back(Attribute(temp));
 			start = end + 1;
 		}
 
-		// Ìõ¼þ½âÎö
+		// æ¡ä»¶è§£æž
 		start = conditionstart + 1;
 		while (true)
 		{
-			if (!start) break;	// Ìõ¼þÈ¡Íê
+			if (!start) break;	// æ¡ä»¶å–å®Œ
 			end = SQL.find_first_of("&|", start);
-			temp = SQL.substr(start, end - start);	// È¡Ìõ¼þ
+			temp = SQL.substr(start, end - start);	// å–æ¡ä»¶
 
-			// Éú³É²¢·ÅÈëvector
+			// ç”Ÿæˆå¹¶æ”¾å…¥vector
 			conditions.push_back(genCondition(temp));
 
 			start = end + 1;
@@ -148,27 +148,27 @@ SQLstatement::SQLstatement(string SQL)
 	case INSERT:
 		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
-		start = end + 1;	// ¶ÁÈ¡±íÃû
-		// insertÄÚÈÝ
+		start = end + 1;	// è¯»å–è¡¨å
+		// insertå†…å®¹
 		content = SQL.substr(start);
 		break;
 	case DELETE:
 		tableName = SQL.substr(start);
-		// ¶ÁÈ¡±íÃû
+		// è¯»å–è¡¨å
 		break;
 	case DELETE_WHERE:
 		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
 		start = end + 1; 
 		
-		// whereÌõ¼þÉú³É
+		// whereæ¡ä»¶ç”Ÿæˆ
 		while (true)
 		{
-			if (!start) break;	// Ìõ¼þÈ¡Íê
+			if (!start) break;	// æ¡ä»¶å–å®Œ
 			end = SQL.find_first_of("&|", start);
-			temp = SQL.substr(start, end - start);	// È¡Ìõ¼þ
+			temp = SQL.substr(start, end - start);	// å–æ¡ä»¶
 
-			// Éú³É²¢·ÅÈëvector
+			// ç”Ÿæˆå¹¶æ”¾å…¥vector
 			conditions.push_back(genCondition(temp));
 
 			start = end + 1;
@@ -178,9 +178,9 @@ SQLstatement::SQLstatement(string SQL)
 	case CREATE_TABLE:
 		end = SQL.find_first_of(',', start);
 		tableName = SQL.substr(start, end - start); 
-		start = end + 1;	// ¶ÁÈ¡±íÃû
+		start = end + 1;	// è¯»å–è¡¨å
 
-		// ÊôÐÔ½âÎö
+		// å±žæ€§è§£æž
 		while (true)
 		{
 			int first, second;
@@ -190,7 +190,7 @@ SQLstatement::SQLstatement(string SQL)
 
 			first = SQL.find_first_of(' ', start);
 			second = SQL.find_first_of(' ', first + 1);
-			if (second == -1)	// ¶Áµ½primarykeyÉùÃ÷
+			if (second == -1)	// è¯»åˆ°primarykeyå£°æ˜Ž
 			{
 				string primaryKey = SQL.substr(start, first - start);
 				for (size_t i = 0; i < attributes.size(); i++)
@@ -199,7 +199,7 @@ SQLstatement::SQLstatement(string SQL)
 					{
 						attributes[i].isPrimaryKey = true;
 						break;
-					}	// ¿ÉÄÜ´æÔÚprimaryKeyÖ¸Ã÷µÄÊôÐÔ²»´æÔÚ						TO-DO
+					}	// å¯èƒ½å­˜åœ¨primaryKeyæŒ‡æ˜Žçš„å±žæ€§ä¸å­˜åœ¨						TO-DO
 				}
 			}
 			else
@@ -220,7 +220,7 @@ SQLstatement::SQLstatement(string SQL)
 	case CREATE_INDEX:
 		end = SQL.find_first_of(' ', start);
 		indexName = SQL.substr(start, end - start);
-		start = end + 1;	// ¶ÁÈ¡indexÃû
+		start = end + 1;	// è¯»å–indexå
 		end = SQL.find_first_of(' ', start);
 		tableName = SQL.substr(start, end - start);
 		start = end + 1;
@@ -229,16 +229,16 @@ SQLstatement::SQLstatement(string SQL)
 	case DROP_DATABASE:break;
 	case DROP_TABLE:
 		tableName = SQL.substr(start);
-		// ¶ÁÈ¡±íÃû
+		// è¯»å–è¡¨å
 		break;
 	case DROP_INDEX:
 		indexName = SQL.substr(start);
-		// È¡µÃindexName
+		// å–å¾—indexName
 		break;
 	case USE:break;
 	case EXECFILE:
 		tableName = SQL.substr(start);
-		// ÓÃtableName´æ·ÅÖ´ÐÐµÄÎÄ¼þÃû
+		// ç”¨tableNameå­˜æ”¾æ‰§è¡Œçš„æ–‡ä»¶å
 		break;
 	case QUIT:break;
 	case HELP:break;

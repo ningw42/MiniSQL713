@@ -1,4 +1,4 @@
-#include "Record_Manager.h"
+ï»¿#include "Record_Manager.h"
 
 //bool RecordManager::createTable(Table & table)
 //{}
@@ -12,96 +12,110 @@
 //{}
 int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)
 {
-	attributeValuesMap.clear();			// Çå¿Õ·µ»ØÁĞ±í					¿ÉÄÜ´æÔÚÄÚ´æĞ¹Â¶		TO-DO
-	int readSize = table.tupleLength;	// tuple³¤¶È
-	int selectAttrNum;					// Ñ¡ÔñÊôĞÔ¸öÊı
-	vector<Attribute> selectAttrbute;	// Ñ¡È¡ÊôĞÔÁĞ±í
+	attributeValuesMap.clear();				// æ¸…ç©ºè¿”å›åˆ—è¡¨					å¯èƒ½å­˜åœ¨å†…å­˜æ³„éœ²		TO-DO
+	int readSize = table.tupleLength + 1;	// tupleé•¿åº¦ + ä¸€ä½lazy deleteä½
+	int selectAttrNum;						// é€‰æ‹©å±æ€§ä¸ªæ•°
+	vector<Attribute> selectAttrbute;		// é€‰å–å±æ€§åˆ—è¡¨
 
 	if (attributes[0].name == "*")		
 	{
-		// È«Ñ¡µÄÇé¿ö
+		// å…¨é€‰çš„æƒ…å†µ
 		selectAttrNum = table.attributes.size();
 		selectAttrbute = table.attributes;
 	}
 	else
 	{
-		// ·ÇÈ«Ñ¡
+		// éå…¨é€‰
 		selectAttrNum = attributes.size();
 		selectAttrbute = attributes;
 	}
 
-	vector<string> * cluster = new vector<string>[selectAttrNum];	// ÊôĞÔÖµÁĞ±íµÄ¼¯ºÏ		new
+	vector<string> * cluster = new vector<string>[selectAttrNum];	// å±æ€§å€¼åˆ—è¡¨çš„é›†åˆ		new
+	string * allAttrValuestemp = new string[table.attriNum];		// ç”¨äº					new(deleted)
 
 	for (/*read from start to end*/;;)
 	{
 		// read tuple here
 		for (int i = 0; i < table.attriNum; i++)
 		{
-			// È¡³öÃ¿¸öÊôĞÔµÄÖµ
-			int count = 0;	// Ñ¡ÔñÊôĞÔµÄÏÂ±ê
+			int count = 0;	// é€‰æ‹©å±æ€§çš„ä¸‹æ ‡
+			string value;	// å–å‡ºæ¯ä¸ªå±æ€§çš„å€¼ å¹¶ä¸”stringåŒ–
+			
+			allAttrValuestemp[i] = value;	// æš‚å­˜å½“å‰éå†çš„tupleçš„å±æ€§å€¼
 			if (contains(selectAttrbute, table.attributes[i]))
 			{
-				// ¼ÇÂ¼ÊÇµÚ¼¸¸öĞèÒªµÄÊôĞÔ
-				cluster[count].push_back(/*°ÑÖµ·ÅÈëÁĞ±í*/);
+				// è®°å½•æ˜¯ç¬¬å‡ ä¸ªéœ€è¦çš„å±æ€§
+				cluster[count].push_back(/*æŠŠå€¼æ”¾å…¥åˆ—è¡¨*/);
 				count++;
+			}
+		}
+		if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// åˆ¤æ–­è¯»å–çš„è®°å½•æ˜¯å¦ç¬¦åˆæ¡ä»¶			
+		{													// å¯èƒ½å­˜åœ¨ç©ºvectorè°ƒç”¨pop_back()		TO-DO
+			// ç§»é™¤ä¸æ»¡è¶³æ¡ä»¶çš„tupleï¼ˆä¹‹å‰æ— æ¡ä»¶æ”¾å…¥ï¼‰
+			for (int i = 0; i < selectAttrNum; i++)
+			{
+				cluster[i].pop_back();
 			}
 		}
 	}
 
-	if (cluster[0].size())	// ÓĞÑ¡³öµÄÊôĞÔ
+	if (cluster[0].size())	// æœ‰é€‰å‡ºçš„å±æ€§
 	{
 		for (int i = 0; i < selectAttrNum; i++)
 		{
 			attributeValuesMap.insert(std::pair<string, vector<string> >(selectAttrbute[i].name, cluster[i]));
 		}
+		delete[] allAttrValuestemp;
 		return cluster[0].size();
 	}
 	else
 	{
 		delete[] cluster;
+		delete[] allAttrValuestemp;
 		return 0;
 	}
 }
 
 int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & attributes)
 {
-	attributeValuesMap.clear();			// Çå¿Õ·µ»ØÁĞ±í					¿ÉÄÜ´æÔÚÄÚ´æĞ¹Â¶		TO-DO
-	int readSize = table.tupleLength;	// tuple³¤¶È
-	int selectAttrNum;					// Ñ¡ÔñÊôĞÔ¸öÊı
-	vector<Attribute> selectAttrbute;	// Ñ¡È¡ÊôĞÔÁĞ±í
+	attributeValuesMap.clear();				// æ¸…ç©ºè¿”å›åˆ—è¡¨					å¯èƒ½å­˜åœ¨å†…å­˜æ³„éœ²		TO-DO
+	int readSize = table.tupleLength + 1;	// tupleé•¿åº¦ + ä¸€ä½lazy deleteä½
+	int selectAttrNum;						// é€‰æ‹©å±æ€§ä¸ªæ•°
+	vector<Attribute> selectAttrbute;		// é€‰å–å±æ€§åˆ—è¡¨
 
 	if (attributes[0].name == "*")
 	{
-		// È«Ñ¡µÄÇé¿ö
+		// å…¨é€‰çš„æƒ…å†µ
 		selectAttrNum = table.attributes.size();
 		selectAttrbute = table.attributes;
 	}
 	else
 	{
-		// ·ÇÈ«Ñ¡
+		// éå…¨é€‰
 		selectAttrNum = attributes.size();
 		selectAttrbute = attributes;
 	}
 
-	vector<string> * cluster = new vector<string>[selectAttrNum];	// ÊôĞÔÖµÁĞ±íµÄ¼¯ºÏ		new
+	vector<string> * cluster = new vector<string>[selectAttrNum];	// å±æ€§å€¼åˆ—è¡¨çš„é›†åˆ		new
+	char * reader = new char[readSize];								// è¯»å–buffer			new
 
 	for (/*read from start to end*/;;)
 	{
 		// read tuple here
 		for (int i = 0; i < table.attriNum; i++)
 		{
-			// È¡³öÃ¿¸öÊôĞÔµÄÖµ
+			// å–å‡ºæ¯ä¸ªå±æ€§çš„å€¼
 			int count = 0;
 			if (contains(selectAttrbute, table.attributes[i]))
 			{
-				// ¼ÇÂ¼ÊÇµÚ¼¸¸öĞèÒªµÄÊôĞÔ
-				cluster[count].push_back(/*°ÑÖµ·ÅÈëÁĞ±í*/);
+				// è®°å½•æ˜¯ç¬¬å‡ ä¸ªéœ€è¦çš„å±æ€§
+				cluster[count].push_back(/*æŠŠå€¼æ”¾å…¥åˆ—è¡¨*/);
 				count++;
 			}
 		}
 	}
 
-	if (cluster[0].size())	// ÓĞÑ¡³öµÄÊôĞÔ
+	if (cluster[0].size())	// æœ‰é€‰å‡ºçš„å±æ€§
 	{
 		for (int i = 0; i < selectAttrNum; i++)
 		{
@@ -126,4 +140,183 @@ bool RecordManager::contains(const vector<Attribute> & attributes, const Attribu
 		}
 	}
 	return false;
+}
+
+int RecordManager::hasCondition(const vector<Condition> & conditions, const string & attrName)
+{
+	for (size_t i = 0; i < conditions.size(); i++)
+	{
+		if (conditions[i].attribute.name == attrName)
+		{
+			return i;
+		}
+	}
+	return 0;
+}
+
+bool RecordManager::satisfy(const vector<Attribute> & attributes, const vector<Condition> & conditions, const string * allAttrValues)
+{
+	for (size_t i = 0; i < attributes.size(); i++)
+	{
+		if (int indexofcond = hasCondition(conditions, attributes[i].name))
+		{
+			if (!satisfy(conditions[indexofcond], allAttrValues[i], attributes[i].type))	// è‹¥conditionsç»´æŠ¤äº†å¯¹åº”attributeçš„å±æ€§ï¼Œåˆ™ä¸éœ€è¦ç¬¬ä¸‰ä¸ªå‚æ•°
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool RecordManager::satisfy(const Condition & cond, const string & value, const TYPE type)
+{
+	switch (cond.relationType)
+	{
+	case EQUAL:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) == atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) == atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value == cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	case NOT_EQUAL:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) != atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) != atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value != cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	case GREATER:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) > atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) > atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value > cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	case GREATER_EQUAL:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) >= atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) >= atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value >= cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	case SMALLER:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) < atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) < atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value < cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	case SMALLER_EQUAL:
+		switch (type)
+		{
+		case MYINT:
+			if (atoi(value.c_str()) <= atoi(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYFLOAT:
+			if (atof(value.c_str()) <= atof(cond.value.c_str()))
+				return true;
+			else
+				return false;
+			break;
+		case MYCHAR:
+			if (value <= cond.value)
+				return true;
+			else
+				return false;
+			break;
+		default:break;
+		}
+		break;
+	default:break;
+	}
 }
