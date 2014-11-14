@@ -7,9 +7,9 @@
 //{}
 //bool RecordManager::dropTable(Table & table)
 //{}
-//SelectReturnList RecordManager::selectWithwhere(Table & table, vector<Attribute> & attributes, vector<Condition> & conditions)
-//{}
-//SelectReturnList RecordManager::selectWithoutwhere(Table & table, vector<Attribute> & attributes)
+AttributeValuesMap RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)
+{}
+//AttributeValuesMap RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & attributes)
 //{}
 //bool RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions)
 //{}

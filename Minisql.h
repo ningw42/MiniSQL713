@@ -1,4 +1,4 @@
-#if !defined(__MINISQL__H__)
+#ifndef __MINISQL__H__
 #define __MINISQL__H__
 
 #include <iostream>
@@ -19,7 +19,7 @@ using namespace std;
 #define ATTR_INFO_LENGTH 20
 #define FILE_HEAD_LENGTH 31
 
-typedef map< string, vector<string> > SelectReturnList;
+typedef map< string, vector<string> > AttributeValuesMap;
 
 enum TYPE { MYINT = 0, MYFLOAT = 1, MYCHAR = 2 };
 enum RELATION_TYPE { EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, SMALLER, SMALLER_EQUAL, AND, OR};

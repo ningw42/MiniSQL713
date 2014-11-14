@@ -245,10 +245,7 @@ SQLstatement::SQLstatement(string SQL)
 	default:break;
 	}
 }
-SQLstatement::SQLstatement(STATEMENT_TYPE type, string tableName)
-{
-
-}
+SQLstatement::SQLstatement(STATEMENT_TYPE type, string tableName){}
 
 SQLstatement::~SQLstatement()
 {
