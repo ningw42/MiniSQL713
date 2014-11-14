@@ -252,4 +252,6 @@ SQLstatement::SQLstatement(STATEMENT_TYPE type, string tableName)
 
 SQLstatement::~SQLstatement()
 {
+	attributes.clear();
+	conditions.clear();
 }
