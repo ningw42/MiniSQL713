@@ -338,18 +338,16 @@ bool CatalogManager::dropTable(Table *t)
 	for (iter = tableList.begin(); iter != tableList.end();)
 	{
 		if (iter->name == t->name){
-			Table *t = &(*iter);
 			if (!save_tableInfo(t, add)){
 				return false;
 			}
 			iter = tableList.erase(iter);
 			update_tableNum(add);
-			delete t;
 			break;
 		}
 		else
 			iter++;
-	}
+	} // 误删SQLstatement对象attribute造成段错误
 	return true;
 }
 
