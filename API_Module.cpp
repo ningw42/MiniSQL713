@@ -7,7 +7,7 @@
 extern CatalogManager cm;
 extern BufferManager bm;
 extern RecordManager rm;
-
+extern bool quitFlag;
 void APIMoudule::API(SQLstatement &s)
 {
 	if (s.type == CREATE_TABLE){
@@ -113,7 +113,8 @@ void APIMoudule::API(SQLstatement &s)
 		}
 	}
 	else if (s.type == QUIT){
-		exit(0);
+		quitFlag = true;
+		// 保存表信息
 	}
 	else if (s.type == HELP){
 		getHelp();

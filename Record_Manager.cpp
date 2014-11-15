@@ -92,13 +92,29 @@ bool RecordManager::insertValue(Table & table, const string & values)
 		default:break;
 		}
 	}
-	//cout << currentPos << endl;
-	//cout << *(int *)tempData << endl;
+	//bool visablebit = tempData[0];
+	//int intg = *(int *)(tempData + 1);
+	//float flo = *(float *)(tempData + 5);
+	//cout << visablebit << endl << intg << endl << flo << endl << tempData + 9 << endl;
 
-	// 将tempData写入真正的buffer												TO-DO
+	// 将tempData写入真正的buffer												
 	// 维护table的recordNum
+	insertPos insertPos = bm.getInsertPosition(table);
+	if (insertPos.position + writeLength > BLOCKSIZE)
+	{
+		// 当前block满了															TO-DO
+	}
+	else
+	{
+		int bufferIndex = insertPos.bufferNUM;
+		int blockIndex = insertPos.position;
+		for (int i = 0; i < writeLength; i++)
+		{
+			bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
+		}
+		table.recordNum++;
+	}
 	delete[] tempData;
-
 	return true;
 }
 

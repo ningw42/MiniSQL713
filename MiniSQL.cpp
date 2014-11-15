@@ -10,6 +10,7 @@ APIMoudule api;
 CatalogManager cm;
 BufferManager bm;
 RecordManager rm;
+bool quitFlag = false;
 
 int main(void)
 {
@@ -34,7 +35,7 @@ int main(void)
 		api.API(s);
 				
 		//s.outputinfo();
-		
+		if (quitFlag) break;
 	}
 	return 0;
 }
