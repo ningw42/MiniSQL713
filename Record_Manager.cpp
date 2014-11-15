@@ -2,53 +2,94 @@
 #include "Buffer_Manager.h"
 
 extern BufferManager bm;
+// 坑1:primaryKey unique
+
 //bool RecordManager::createTable(Table & table)
 //{}
-//bool RecordManager::dropTable(Table & table)
-//{}
+bool RecordManager::dropTable(Table & table)
+{
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+	{
+		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
+		{
+			bm.bufferBlock[bufferIndex].isValid = false;
+		}
+	}
+	remove((table.name + ".table").c_str());
+	return true;
+}
 int RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions)
 {
+	bm.scanIn(table);
 	int deleteLength = table.tupleLength + 1;	// 检查的长度
 	int count = 0;								// 删除的行数
 	string * allAttrValuestemp = new string[table.attriNum];	// 暂存同行的各属性值		new
 
-	for (/*读取每行的数据*/;;)
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		if (/*visable bit == true*/true)
+		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
 		{
-			for (int i = 0; i < table.attriNum; i++)
+			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
 			{
-				string value;	// 取出每个属性的值 并且string化
-
-				allAttrValuestemp[i] = value;
-			}
-			if (satisfy(table.attributes, conditions, allAttrValuestemp))
-			{
-				// set visable bit to 0(false);
-				count++;
+				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+				if (visibleBit == 1)
+				{
+					int positionOffset = 1;	// 跳过visibleBit
+					for (int i = 0; i < table.attriNum; i++)
+					{
+						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
+						// 取出每个属性的值 并且string化
+						allAttrValuestemp[i] = value;
+						positionOffset += table.attributes[i].length;	// 下个属性
+					}
+					if (satisfy(table.attributes, conditions, allAttrValuestemp))
+					{
+						// set visable bit to 0(false);
+						bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
+						count++;
+					}
+				}
+				else if (visibleBit == 64)	// visibleBit == '@' （空）
+				{
+					break;
+				}
 			}
 		}
 	}
-
+	table.recordNum -= count;
 	delete[] allAttrValuestemp;
 	return count;
 }
 
 int RecordManager::deleteWithoutwhere(Table & table)
 {
+	bm.scanIn(table);
 	int deleteLength = table.tupleLength + 1;	// 检查的长度
 	int count = 0;								// 删除的行数
 
 	// read Buffer and set "visable bit" to 0(false);									TO-DO
-	for (/*读取每行的数据*/;;)
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		if (/*visable bit == true*/true)
+		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
 		{
-			// set "visable bit" to 0(false);
-			count++;
+			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
+			{
+				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+				if (visibleBit == 1)
+				{
+					// set visable bit to 0(false);
+					bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
+					count++;
+				}
+				else if (visibleBit == 64)	// visibleBit == '@' （空）
+				{
+					break;
+				}
+			}
 		}
 	}
 	// 维护table的recordNum
+	table.recordNum -= count;
 	return count;
 }
 
@@ -59,6 +100,8 @@ bool RecordManager::insertValue(Table & table, const string & values)
 	int currentPos = 0;							// 当前tempData的写入位置
 	int start = 0;
 	int end = 0;
+
+	// primaryKey和Unique检查还没做
 
 	bool visable = true;	// lazy delete 用
 	currentPos = copyinto(tempData, (char *)&visable, currentPos, 1);
@@ -100,26 +143,20 @@ bool RecordManager::insertValue(Table & table, const string & values)
 	// 将tempData写入真正的buffer												
 	// 维护table的recordNum
 	insertPos insertPos = bm.getInsertPosition(table);
-	if (insertPos.position + writeLength > BLOCKSIZE)
-	{
-		// 当前block满了															TO-DO
-	}
-	else
-	{
-		int bufferIndex = insertPos.bufferNUM;
-		int blockIndex = insertPos.position;
-		for (int i = 0; i < writeLength; i++)
-		{
-			bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
-		}
-		table.recordNum++;
-	}
+	int bufferIndex = insertPos.bufferNUM;
+	int blockIndex = insertPos.position;
+	for (int i = 0; i < writeLength; i++)
+	{	
+		bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
+	}	
+	table.recordNum++;
 	delete[] tempData;
 	return true;
 }
 
 int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)
 {
+	bm.scanIn(table);
 	attributeValuesMap.clear();				// 清空返回列表					可能存在内存泄露		TO-DO
 	int readSize = table.tupleLength + 1;	// tuple长度 + 一位lazy delete位
 	int selectAttrNum;						// 选择属性个数
@@ -141,30 +178,41 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 	vector<string> * cluster = new vector<string>[selectAttrNum];	// 属性值列表的集合		new需要在API中delete
 	string * allAttrValuestemp = new string[table.attriNum];		// 用于存放当前行的值		new(deleted)
 
-	for (/*read from start to end*/;;)														// TO-DO
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		// read tuple here
-		if (/*visable bit == true*/true)
+		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
 		{
-			for (int i = 0; i < table.attriNum; i++)
+			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
 			{
-				int count = 0;	// 选择属性的下标
-				string value;	// 取出每个属性的值 并且string化
-
-				allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
-				if (contains(selectAttrbute, table.attributes[i]))
+				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+				if (visibleBit == 1)
 				{
-					// 记录是第几个需要的属性
-					cluster[count].push_back(value);/*把值放入列表*/
-					count++;
+					int positionOffset = 1;	// 跳过visibleBit
+					for (int i = 0; i < table.attriNum; i++)
+					{
+						int count = 0;	// 选择属性的下标
+						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
+						allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
+						if (contains(selectAttrbute, table.attributes[i]))
+						{
+							// 记录是第几个需要的属性
+							cluster[count].push_back(value);/*把值放入列表*/
+							count++;
+						}
+						positionOffset += table.attributes[i].length;
+					}
+					if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// 判断读取的记录是否符合条件			
+					{													// 可能存在空vector调用pop_back()		TO-DO
+						// 移除不满足条件的tuple（之前无条件放入）
+						for (int i = 0; i < selectAttrNum; i++)
+						{
+							cluster[i].pop_back();
+						}
+					}
 				}
-			}
-			if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// 判断读取的记录是否符合条件			
-			{													// 可能存在空vector调用pop_back()		TO-DO
-				// 移除不满足条件的tuple（之前无条件放入）
-				for (int i = 0; i < selectAttrNum; i++)
+				else if (visibleBit == 64)	// visibleBit == '@' （空）
 				{
-					cluster[i].pop_back();
+					break;
 				}
 			}
 		}
@@ -189,6 +237,7 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 
 int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & attributes)
 {
+	bm.scanIn(table);
 	attributeValuesMap.clear();				// 清空返回列表					可能存在内存泄露		TO-DO
 	int readSize = table.tupleLength + 1;	// tuple长度 + 一位lazy delete位
 	int selectAttrNum;						// 选择属性个数
@@ -207,25 +256,34 @@ int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & a
 		selectAttrbute = attributes;
 	}
 
-	vector<string> * cluster = new vector<string>[selectAttrNum];	// 属性值列表的集合		new
-	char * reader = new char[readSize];								// 读取buffer			new
+	vector<string> * cluster = new vector<string>[selectAttrNum];	// 属性值列表的集合		new 有待delete
 
-	for (/*read from start to end*/;;)													//TO-DO
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		// read tuple here
-		if (/*visable bit == true*/true)
+		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
 		{
-			for (int i = 0; i < table.attriNum; i++)
+			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
 			{
-				int count = 0;
-				string value;
-				// 取出每个属性的值
-
-				if (contains(selectAttrbute, table.attributes[i]))
+				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+				if (visibleBit == 1)
 				{
-					// 记录是第几个需要的属性
-					cluster[count].push_back(value);/*把值放入列表*/
-					count++;
+					int positionOffset = 1;	// 跳过visibleBit
+					for (int i = 0; i < table.attriNum; i++)
+					{
+						int count = 0;	// 选择属性的下标
+						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
+						if (contains(selectAttrbute, table.attributes[i]))
+						{
+							// 记录是第几个需要的属性
+							cluster[count].push_back(value);/*把值放入列表*/
+							count++;
+						}
+						positionOffset += table.attributes[i].length;
+					}
+				}
+				else if (visibleBit == 64)	// visibleBit == '@' （空）
+				{
+					break;
 				}
 			}
 		}
@@ -244,6 +302,26 @@ int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & a
 		delete[] cluster;
 		return 0;
 	}
+}
+
+string RecordManager::toString(const char * source, int length, TYPE type)
+{
+	string value = "";
+	switch (type)
+	{
+	case MYINT:
+		value = to_string(*((int *)source));
+		break;
+	case MYFLOAT:
+		value = to_string(*((float *)source));
+		break;
+	case MYCHAR:
+		value = string(source);
+		break;
+	default:
+		break;
+	}
+	return value;
 }
 
 int RecordManager::copyinto(char * buffer, const char * from, int start, int length)
@@ -443,5 +521,19 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 		}
 		break;
 	default:break;
+	}
+}
+
+void RecordManager::outputMap(int tupleCount)
+{
+	for (auto& result : attributeValuesMap) {
+		cout << result.first << "\t";
+	}
+	cout << endl;
+	for (int i = 0; i < tupleCount; i++)
+	{
+		for (auto& result : attributeValuesMap) {
+			cout << result.second[i] << "\t";
+		}
 	}
 }

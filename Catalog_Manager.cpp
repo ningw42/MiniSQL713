@@ -114,7 +114,7 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 			return false;
 		}
 	}
-	else if (sql.type == DELETE){
+	else if (sql.type == MYDELETE){
 		Table *t = findTable(sql.tableName);
 		if (t){
 			return true;

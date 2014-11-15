@@ -10,6 +10,7 @@ public:
 	RecordManager(){};
 	~RecordManager(){};
 
+	string toString(const char * source, int length, TYPE type);
 	bool satisfy(const vector<Attribute> & attributes, const vector<Condition> & conditions, const string * allAttrValues);
 	bool satisfy(const Condition & cond, const string & value);	// 需要维护condition里的attribute的所有信息
 	bool satisfy(const Condition & cond, const string & value, const TYPE type);
@@ -23,5 +24,7 @@ public:
 	int selectWithoutwhere(Table & table, const vector<Attribute> & attributes);
 	int  deleteWithwhere(Table & table, vector<Condition> & conditions);
 	int deleteWithoutwhere(Table & table);
+
+	void outputMap(int tupleCount);
 };
 #endif

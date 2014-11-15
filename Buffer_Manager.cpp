@@ -43,7 +43,7 @@ BufferManager::~BufferManager(){
 void BufferManager::writeBack(int bufferNum){
 	if (!bufferBlock[bufferNum].isWritten)return;
 	string filename = bufferBlock[bufferNum].filename;
-	fstream  fs(filename.c_str(), ios::in | ios::out);
+	fstream  fs(filename.c_str(), ios::out | ios::binary);
 	fs.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, fs.beg);
 	fs.write(bufferBlock[bufferNum].value, BLOCKSIZE);
 	bufferBlock[bufferNum].init();
@@ -67,7 +67,7 @@ int BufferManager::getIfIsInBuffer(string filename, int blockOffset){
 }
 
 void BufferManager::readBlock(string filename, int blockOffset, int bufferNum){
-	fstream fs(filename.c_str(), ios::in);
+	fstream fs(filename.c_str(), ios::in|ios::binary);
 	bufferBlock[bufferNum].isValid = 1;
 	bufferBlock[bufferNum].isWritten = 0;
 	bufferBlock[bufferNum].filename = filename;
@@ -148,7 +148,7 @@ insertPos  BufferManager::getInsertPosition(Table & fileinformation){
 		return ipos;
 	}
 	string filename = fileinformation.name + ".table";
-	int length = fileinformation.tupleLength;
+	int length = fileinformation.tupleLength + 1;
 	int blockOffset = fileinformation.blockNum - 1;
 	int bufferNum = getIfIsInBuffer(filename, blockOffset);
 	if (bufferNum == -1){
@@ -182,7 +182,7 @@ int BufferManager::addBlockInFile(Table & fil){
 }
 void BufferManager::scanIn(Table fil){
 	string filename = fil.name + ".table";
-	fstream fin(filename.c_str(), ios::in);
+	fstream fin(filename.c_str(), ios::in|ios::binary);
 	for (int blockOffset = 0; blockOffset < fil.blockNum; blockOffset++){
 		if (getIfIsInBuffer(filename, blockOffset) == -1){
 			int bufferNum = getEmptyBufferExcept(filename);

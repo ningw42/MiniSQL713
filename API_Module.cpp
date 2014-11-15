@@ -29,6 +29,7 @@ void APIMoudule::API(SQLstatement &s)
 	else if (s.type == DROP_TABLE){
 		if (cm.API_Catalog(s)){
 			// 调index和record
+			rm.dropTable(*cm.findTable(s.tableName));
 		}
 		else{
 			cout << "drop table failed" << endl;
@@ -46,6 +47,8 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			cout << "right select statement." << endl;
 			// 调index和record
+			int resultCount = rm.selectWithoutwhere(*cm.findTable(s.tableName), s.attributes);
+			rm.outputMap(resultCount);
 		}
 		else{
 			cout << "select failed." << endl;
@@ -55,6 +58,7 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			cout << "right select where statement." << endl;
 			// 调index和record
+			rm.selectWithwhere(*cm.findTable(s.tableName), s.attributes, s.conditions);
 		}
 		else{
 			cout << "select failed." << endl;
@@ -70,22 +74,24 @@ void APIMoudule::API(SQLstatement &s)
 			cout << "insert failed." << endl;
 		}
 	}
-	else if (s.type == DELETE){
+	else if (s.type == MYDELETE){
 		if (cm.API_Catalog(s)){
 			cout << "right delete statement." << endl;
 			// 调record和index
+			rm.deleteWithoutwhere(*cm.findTable(s.tableName));
 		}
 		else{
-			cout << "insert failed." << endl;
+			cout << "delete failed." << endl;
 		}
 	}
 	else if (s.type == DELETE_WHERE){
 		if (cm.API_Catalog(s)){
 			cout << "right delete where statement." << endl;
 			// 调record和index
+			rm.deleteWithwhere(*cm.findTable(s.tableName), s.conditions);
 		}
 		else{
-			cout << "insert failed." << endl;
+			cout << "delete failed." << endl;
 		}
 	}
 	else if (s.type == EXECFILE){

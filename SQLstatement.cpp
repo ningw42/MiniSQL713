@@ -70,7 +70,7 @@ STATEMENT_TYPE SQLstatement::identify(string type_code)
 	else if (type_code == "20") return SELECT;
 	else if (type_code == "21") return SELECT_WHERE;
 	else if (type_code == "30") return INSERT;
-	else if (type_code == "40") return DELETE;
+	else if (type_code == "40") return MYDELETE;
 	else if (type_code == "41") return DELETE_WHERE;
 	else if (type_code == "00") return CREATE_DATABASE;
 	else if (type_code == "01") return CREATE_TABLE;
@@ -152,7 +152,7 @@ SQLstatement::SQLstatement(string SQL)
 		// insert内容
 		content = SQL.substr(start);
 		break;
-	case DELETE:
+	case MYDELETE:
 		tableName = SQL.substr(start);
 		// 读取表名
 		break;
