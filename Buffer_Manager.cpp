@@ -1,4 +1,4 @@
-#include "Buffer_Manager.h"
+﻿#include "Buffer_Manager.h"
 #define EMPTY '@'
 
 void buffer::init(){

@@ -1,8 +1,12 @@
 #include "API_Module.h"
 #include "Catalog_Manager.h"
 #include "Interpreter.h"
+#include "Buffer_Manager.h"
+#include "Record_Manager.h"
 
 extern CatalogManager cm;
+extern BufferManager bm;
+extern RecordManager rm;
 
 void APIMoudule::API(SQLstatement &s)
 {
@@ -60,6 +64,7 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			cout << "right insert statement." << endl;
 			// µ÷recordºÍindex
+			rm.insertValue(*cm.findTable(s.tableName), s.content);
 		}
 		else{
 			cout << "insert failed." << endl;

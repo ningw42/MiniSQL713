@@ -3,10 +3,13 @@
 #include "Interpreter.h"
 #include "API_Module.h"
 #include "Catalog_Manager.h"
+#include "Buffer_Manager.h"
 using namespace std;
 
 APIMoudule api;
 CatalogManager cm;
+BufferManager bm;
+RecordManager rm;
 
 int main(void)
 {

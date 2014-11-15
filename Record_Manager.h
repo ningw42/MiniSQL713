@@ -15,13 +15,13 @@ public:
 	bool satisfy(const Condition & cond, const string & value, const TYPE type);
 	bool contains(const vector<Attribute> & attributes, const Attribute & attr);
 	int hasCondition(const vector<Condition> & conditions, const string & attrName);
-
+	int copyinto(char * buffer, const char * from, int start, int length);
 	bool createTable(Table & table);
-	bool insertValue(Table & table, string values);
+	bool insertValue(Table & table, const string & values);
 	bool dropTable(Table & table);
 	int selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions);
 	int selectWithoutwhere(Table & table, const vector<Attribute> & attributes);
-	bool deleteWithwhere(Table & table, vector<Condition> & conditions);
-	bool deleteWithoutwhere(Table & table);
+	int  deleteWithwhere(Table & table, vector<Condition> & conditions);
+	int deleteWithoutwhere(Table & table);
 };
 #endif

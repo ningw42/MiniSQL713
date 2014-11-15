@@ -1,6 +1,6 @@
 #ifndef __BufferManager_H__
 #define __BufferManager_H__
-using namespace std;
+
 #include "MiniSQL.h"
 
 #define BLOCKSIZE 1000
@@ -8,7 +8,7 @@ using namespace std;
 
 class buffer{
 	friend class BufferManager;
-	buffer();
+	buffer(){};
 public:
 	string filename;
 	int blockOffset;
@@ -30,16 +30,15 @@ public:
 };
 
 class BufferManager{
-	friend class RecoedManager;
+	friend class RecordManager;
 	friend class IndexManager;
 	friend class Leaf;
 	friend class Branch;
 	friend class BPlusTree;
-
+public:
 	BufferManager();
 	~BufferManager();
 
-public:
 	buffer bufferBlock[MAXBLOCKNUMBER];
 	void writeBack(int bufferNum);										// 把buffer中的内容写回到文件中
 	int getbufferNum(string filename, int blockOffset); 				// 获得特定文件中特定块在buffer中的序号,如果没有就将块导入buffer
