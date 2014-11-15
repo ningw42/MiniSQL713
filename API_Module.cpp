@@ -58,7 +58,8 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			cout << "right select where statement." << endl;
 			// µ÷indexºÍrecord
-			rm.selectWithwhere(*cm.findTable(s.tableName), s.attributes, s.conditions);
+			int resultCount = rm.selectWithwhere(*cm.findTable(s.tableName), s.attributes, s.conditions);
+			rm.outputMap(resultCount);
 		}
 		else{
 			cout << "select failed." << endl;

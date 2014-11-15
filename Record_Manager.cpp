@@ -3,6 +3,7 @@
 
 extern BufferManager bm;
 // 坑1:primaryKey unique
+// 坑2:多次查询产生冗余信息
 
 //bool RecordManager::createTable(Table & table)
 //{}
@@ -27,7 +28,7 @@ int RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions
 
 	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
+		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
 		{
 			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
 			{
@@ -70,7 +71,7 @@ int RecordManager::deleteWithoutwhere(Table & table)
 	// read Buffer and set "visable bit" to 0(false);									TO-DO
 	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
+		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
 		{
 			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
 			{
@@ -180,7 +181,7 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 
 	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
+		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
 		{
 			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
 			{
@@ -188,9 +189,9 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 				if (visibleBit == 1)
 				{
 					int positionOffset = 1;	// 跳过visibleBit
+					int count = 0;	// 选择属性的下标
 					for (int i = 0; i < table.attriNum; i++)
 					{
-						int count = 0;	// 选择属性的下标
 						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
 						allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
 						if (contains(selectAttrbute, table.attributes[i]))
@@ -268,9 +269,9 @@ int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & a
 				if (visibleBit == 1)
 				{
 					int positionOffset = 1;	// 跳过visibleBit
+					int count = 0;	// 选择属性的下标
 					for (int i = 0; i < table.attriNum; i++)
 					{
-						int count = 0;	// 选择属性的下标
 						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
 						if (contains(selectAttrbute, table.attributes[i]))
 						{
@@ -535,5 +536,6 @@ void RecordManager::outputMap(int tupleCount)
 		for (auto& result : attributeValuesMap) {
 			cout << result.second[i] << "\t";
 		}
+		cout << endl;
 	}
 }
