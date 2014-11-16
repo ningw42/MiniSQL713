@@ -28,6 +28,7 @@ public:
 	bool save_tableInfo(Table *t, bool add);
 	void writeAttribute(string fn, Attribute *a);
 	void read_TableInfo();
+	void update_tableInfo();
 	
 	//bool insertAttri(Table& table, string attriName, int type, int length, bool isPrimaryKey = false, bool isUnique = false);
 	//bool initiaTable(Table& table);

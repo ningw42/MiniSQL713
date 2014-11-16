@@ -122,6 +122,7 @@ void APIMoudule::API(SQLstatement &s)
 	else if (s.type == QUIT){
 		quitFlag = true;
 		// 保存表信息
+		cm.update_tableInfo();
 	}
 	else if (s.type == HELP){
 		getHelp();

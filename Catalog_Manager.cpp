@@ -470,3 +470,12 @@ void CatalogManager::read_TableInfo()
 	}
 	tableNum = tableList.size();
 }
+
+void CatalogManager::update_tableInfo()
+{
+	bool add = true;
+	vector<Table>::iterator iter;
+	for (iter = tableList.begin(); iter != tableList.end(); iter++){
+		save_tableInfo(&(*iter), add);
+	}
+}
