@@ -8,6 +8,7 @@ class CatalogManager
 	vector<Table> tableList;					// 表信息列表
 	//vector<Table>::iterator tableListItor;		// 表信息列表迭代器
 	int tableNum;								// 表的数目
+	
 public:
 	CatalogManager(){};
 	~CatalogManager(){};
@@ -34,6 +35,8 @@ public:
 	//bool initiaTable(Table& table);
 	//bool deleteAttri(Table &table, string attriName);
 	int getAttriNum(Table *table);
+	
+	string msg;
 };
 
 #endif /* defined(__MiniSQL__Catalog__Manager__) */

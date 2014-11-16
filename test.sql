@@ -15,3 +15,13 @@ select * from t1;
 select a1,a2 from t1;
 
 select * from t1 where a1 > 2;
+
+select * from t1 where a1 > 1 and a1 < 3;
+
+select * from t1 where a3 != 'abc';
+
+delete from t1 where a1 > 1;
+
+delete from t1 where a1 > 1 and a1<3;
+
+delete from t1 where a1 > 1 and a2<3.0;

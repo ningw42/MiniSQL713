@@ -43,7 +43,7 @@ BufferManager::~BufferManager(){
 void BufferManager::writeBack(int bufferNum){
 	if (!bufferBlock[bufferNum].isWritten)return;
 	string filename = bufferBlock[bufferNum].filename;
-	fstream  fs(filename.c_str(), ios::out | ios::binary);
+	fstream  fs(filename.c_str(), ios::out | ios::binary | ios::app);
 	fs.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, fs.beg);
 	fs.write(bufferBlock[bufferNum].value, BLOCKSIZE);
 	bufferBlock[bufferNum].init();
@@ -201,18 +201,16 @@ void BufferManager::setInvalid(string filename){
 		}
 	}
 }
-/*
-int addBlockInFile(Index& indexinfor){
-string filename = indexinfor.index_name + ".index";
-int bufferNum = getEmptyBufferExcept(filename);
-bufferBlock[bufferNum].initialize();
-bufferBlock[bufferNum].isValid = 1;
-bufferBlock[bufferNum].isWritten = 1;
-bufferBlock[bufferNum].filename = filename;
-bufferBlock[bufferNum].blockOffset = indexinfor.blockNum++;
-return bufferNum;
-};
 
-*/
+int BufferManager::addBlockInFile(Index& indexinfor){
+	string filename = indexinfor.index_name + ".index";
+	int bufferNum = getEmptyBufferExcept(filename);
+	bufferBlock[bufferNum].init();
+	bufferBlock[bufferNum].isValid = 1;
+	bufferBlock[bufferNum].isWritten = 1;
+	bufferBlock[bufferNum].filename = filename;
+	bufferBlock[bufferNum].blockOffset = indexinfor.IndexOffset++;
+	return bufferNum;
+}
 
 

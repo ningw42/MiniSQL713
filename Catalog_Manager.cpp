@@ -45,13 +45,13 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 		Table *t = findTable(sql.tableName);
 		if (t){
 			// µ÷index¡¢record
-			string tn = t->name;
+			msg = t->name;
 			if (dropTable(t)){
-				cout << tn << " dropped successfully." << endl;
+				cout << msg << " dropped successfully." << endl;
 				return true;
 			}
 			else{
-				return true;
+				return false;
 			}
 		}
 		else{

@@ -3,22 +3,16 @@
 
 extern BufferManager bm;
 // 坑1:primaryKey unique
-// 坑2:多次查询产生冗余信息
 
 //bool RecordManager::createTable(Table & table)
 //{}
-bool RecordManager::dropTable(Table & table)
+bool RecordManager::dropTable(string & tableName)
 {
-	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
-	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name)	// 属于表的块
-		{
-			bm.bufferBlock[bufferIndex].isValid = false;
-		}
-	}
-	remove((table.name + ".table").c_str());
+	bm.setInvalid(tableName + ".table");
+	remove((tableName + ".table").c_str());
 	return true;
 }
+
 int RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions)
 {
 	bm.scanIn(table);
@@ -202,6 +196,12 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 						}
 						positionOffset += table.attributes[i].length;
 					}
+
+					//for (int i = 0; i < table.attriNum; i++)
+					//{
+					//	cout << "allAttrValuestemp[" << i << "] = " << allAttrValuestemp[i] << endl;
+					//}
+
 					if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// 判断读取的记录是否符合条件			
 					{													// 可能存在空vector调用pop_back()		TO-DO
 						// 移除不满足条件的tuple（之前无条件放入）
@@ -352,22 +352,45 @@ int RecordManager::hasCondition(const vector<Condition> & conditions, const stri
 	{
 		if (conditions[i].attribute.name == attrName)
 		{
-			return i;
+			return i + 1;
 		}
 	}
 	return 0;
 }
 
-bool RecordManager::satisfy(const vector<Attribute> & attributes, const vector<Condition> & conditions, const string * allAttrValues)
+int RecordManager::findIndexOf(const vector<Attribute> & attributes, const Condition & condition)
 {
 	for (size_t i = 0; i < attributes.size(); i++)
 	{
-		if (int indexofcond = hasCondition(conditions, attributes[i].name))
+		if (attributes[i].name == condition.attribute.name)
 		{
-			if (!satisfy(conditions[indexofcond], allAttrValues[i], attributes[i].type))	// 若conditions维护了对应attribute的属性，则不需要第三个参数
-			{
-				return false;
-			}
+			return i;
+		}
+	}
+	return 0;
+	// 有坑
+}
+
+bool RecordManager::satisfy(const vector<Attribute> & attributes, const vector<Condition> & conditions, const string * allAttrValues)
+{
+	//for (size_t i = 0; i < attributes.size(); i++)
+	//{
+	//	if (int indexofcond = hasCondition(conditions, attributes[i].name))
+	//	{
+	//		if (!satisfy(conditions[indexofcond - 1], allAttrValues[i], attributes[i].type))	// 若conditions维护了对应attribute的属性，则不需要第三个参数
+	//		{
+	//			return false;
+	//		}
+	//	}
+	//}
+	//return true;
+
+	for (size_t i = 0; i < conditions.size(); i++)
+	{
+		int attrIndex = findIndexOf(attributes, conditions[i]);
+		if ((!satisfy(conditions[i], allAttrValues[attrIndex], attributes[attrIndex].type)))
+		{
+			return false;
 		}
 	}
 	return true;
@@ -393,7 +416,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value == cond.value)
+			if (value == cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -417,7 +440,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value != cond.value)
+			if (value != cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -441,7 +464,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value > cond.value)
+			if (value > cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -465,7 +488,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value >= cond.value)
+			if (value >= cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -489,7 +512,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value < cond.value)
+			if (value < cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -513,7 +536,7 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 				return false;
 			break;
 		case MYCHAR:
-			if (value <= cond.value)
+			if (value <= cond.value.substr(1, cond.value.length() - 2))
 				return true;
 			else
 				return false;
@@ -527,6 +550,28 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 
 void RecordManager::outputMap(int tupleCount)
 {
+	//int max = 0;
+	//int attrCount = 0;
+	//for (auto& result : attributeValuesMap)
+	//	attrCount++;
+	//for (int i = 0; i < tupleCount; i++)
+	//{
+	//	int length = 0;
+	//	for (auto& result : attributeValuesMap) {
+	//		length += result.second[i].length();
+	//	}
+	//	if (length > max)
+	//	{
+	//		max = length;
+	//	}
+	//}
+	//max += attrCount << 2;
+	//for (int i = 0; i < max; i++)
+	//{
+	//	cout << '-';
+	//}
+	//cout << endl;
+
 	for (auto& result : attributeValuesMap) {
 		cout << result.first << "\t";
 	}

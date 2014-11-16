@@ -1,14 +1,15 @@
 #ifndef __BufferManager_H__
 #define __BufferManager_H__
 
-#include "MiniSQL.h"
-
-#define BLOCKSIZE 1000
+#define BLOCKSIZE 4096
 #define MAXBLOCKNUMBER 1000
+
+#include "MiniSQL.h"
+#include "Index_Manager.h"
 
 class buffer{
 	friend class BufferManager;
-	buffer(){};
+	buffer(){}
 public:
 	string filename;
 	int blockOffset;
@@ -16,7 +17,6 @@ public:
 	char value[BLOCKSIZE + 1];
 	bool isValid;
 	bool isWritten;
-
 
 	void init();
 	string getvalue(int start, int end);
@@ -50,7 +50,7 @@ public:
 	int getEmptyBufferExcept(string filename); 							// 得到一个空的buffer的序号(替换的时候不替换包含特定filename数据的buffer
 	insertPos getInsertPosition(Table& fileinformation);				// 如果想向某文件进行写入，调用这个函数获得写入位置
 	int addBlockInFile(Table& fileinformation);							// 为一个文件在buffer中新开辟一个块（为了写入）
-	//int addBlockInFile(Table& indexinfor); 							// 为一个index文件在buffer中新开辟一个块（为了写入）
+	int addBlockInFile(Index& indexinfor); 								// 为一个index文件在buffer中新开辟一个块（为了写入）
 	void scanIn(Table fil); 											// 将整个文件读入buffer中
 	void setInvalid(string filename); 									// 如果文件被删除，将里面的所有相关块置为invalid
 };
