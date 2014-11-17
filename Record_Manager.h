@@ -28,6 +28,6 @@ public:
 	int  deleteWithwhere(Table & table, vector<Condition> & conditions);
 	int deleteWithoutwhere(Table & table);
 
-	void outputMap(int tupleCount);
+	void outputMap(int tupleCount, const Table & table);
 };
 #endif

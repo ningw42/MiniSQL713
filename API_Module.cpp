@@ -4,6 +4,7 @@
 #include "Buffer_Manager.h"
 #include "Record_Manager.h"
 #include "Index_Manager.cpp"
+#include <time.h>
 
 extern CatalogManager cm;
 RecordManager rm;
@@ -66,11 +67,14 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			//cout << "right select statement." << endl;
 			// 调index和record
-			int resultCount = rm.selectWithoutwhere(*cm.findTable(s.tableName), s.attributes);
+			Table & targetTable = *cm.findTable(s.tableName);
+			clock_t start = clock();
+			int resultCount = rm.selectWithoutwhere(targetTable, s.attributes);
+			clock_t end = clock();
 			if (resultCount)
 			{
-				rm.outputMap(resultCount);
-				cout << resultCount << " row(s) selected:" << endl;
+				rm.outputMap(resultCount, targetTable);
+				cout << resultCount << " row(s) selected in " << (double)(end - start) / CLOCKS_PER_SEC << " seconds" << endl;
 			}
 			else
 			{
@@ -85,11 +89,14 @@ void APIMoudule::API(SQLstatement &s)
 		if (cm.API_Catalog(s)){
 			//cout << "right select where statement." << endl;
 			// 调index和record
-			int resultCount = rm.selectWithwhere(*cm.findTable(s.tableName), s.attributes, s.conditions);
+			Table & targetTable = *cm.findTable(s.tableName);
+			clock_t start = clock();
+			int resultCount = rm.selectWithwhere(targetTable, s.attributes, s.conditions);
+			clock_t end = clock();
 			if (resultCount)
 			{
-				rm.outputMap(resultCount);
-				cout << resultCount << " row(s) selected:" << endl;
+				rm.outputMap(resultCount, targetTable);
+				cout << resultCount << " row(s) selected in " << (double)(end - start) / CLOCKS_PER_SEC << " seconds" << endl;
 			}
 			else
 			{

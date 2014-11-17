@@ -8,7 +8,7 @@ BufferManager bm;
 bool RecordManager::dropTable(string & tableName)
 {
 	bm.setInvalid(tableName + ".table");
-	remove((tableName + ".table").c_str());
+	remove(("./bm/" + tableName + ".table").c_str());
 	return true;
 }
 
@@ -613,38 +613,36 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 	}
 }
 
-void RecordManager::outputMap(int tupleCount)
+void RecordManager::outputMap(int tupleCount, const Table & table)
 {
-	//int max = 0;
-	//int attrCount = 0;
-	//for (auto& result : attributeValuesMap)
-	//	attrCount++;
-	//for (int i = 0; i < tupleCount; i++)
-	//{
-	//	int length = 0;
-	//	for (auto& result : attributeValuesMap) {
-	//		length += result.second[i].length();
-	//	}
-	//	if (length > max)
-	//	{
-	//		max = length;
-	//	}
-	//}
-	//max += attrCount << 2;
-	//for (int i = 0; i < max; i++)
-	//{
-	//	cout << '-';
-	//}
-	//cout << endl;
+	int max = 0;
+	int attrCount = table.attriNum;
+	for (int i = 0; i < tupleCount; i++)
+	{
+		int length = 0;
+		for (auto& result : attributeValuesMap) {
+			length += result.second[i].length();
+		}
+		if (length > max)
+		{
+			max = length;
+		}
+	}
+	int length = max * attrCount;
+	for (int i = 0; i < length; i++)
+	{
+		cout << '-';
+	}
+	cout << endl;
 
 	for (auto& result : attributeValuesMap) {
-		cout << result.first << "\t";
+		cout << "\t" << result.first << "\t";
 	}
 	cout << endl;
 	for (int i = 0; i < tupleCount; i++)
 	{
 		for (auto& result : attributeValuesMap) {
-			cout << result.second[i] << "\t";
+			cout << "\t"  << result.second[i] << "\t";
 		}
 		cout << endl;
 	}

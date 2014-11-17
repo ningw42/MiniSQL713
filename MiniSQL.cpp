@@ -9,6 +9,7 @@ APIMoudule api;
 CatalogManager cm;
 
 bool quitFlag = false;
+int fukcount = 0;
 
 int main(void)
 {
