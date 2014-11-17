@@ -328,7 +328,7 @@ bool RecordManager::isExist(char * data, int currentPos, int length, TYPE type, 
 				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
 				if (visibleBit)
 				{
-					string existValue = toString(bm.bufferBlock[bufferIndex].value + currentPos, length, type);
+					string existValue = toString(bm.bufferBlock[bufferIndex].value + blockIndex + currentPos, length, type);
 					if (existValue == key)
 					{
 						return true;
