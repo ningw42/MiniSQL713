@@ -3,7 +3,7 @@
 #include "Interpreter.h"
 #include "Buffer_Manager.h"
 #include "Record_Manager.h"
-#include "Index_Manager.h"
+#include "Index_Manager.cpp"
 
 extern CatalogManager cm;
 RecordManager rm;
@@ -27,15 +27,15 @@ void APIMoudule::API(SQLstatement &s)
 			// µ÷index
 			Index *i = cm.findIndex(s.indexName);
 			Table *t = cm.findTable(s.tableName);
-			TYPE type = cm.getAttribute(t, i->index_name)->type;
+			TYPE type = cm.getAttributebyi(t, i->index_name)->type;
 			if (type == MYINT){
-				//imInt.createIndex(*t, *i);
+				imInt.createIndex(*t, *i);
 			}
 			else if (type == MYFLOAT){
-				//imFloat.createIndex(*t, *i);
+				imFloat.createIndex(*t, *i);
 			}
 			else if (type == MYCHAR){
-				//imString.createIndex(*t, *i);
+				imString.createIndex(*t, *i);
 			}
 			else{
 				cout << "wrong type." << endl;

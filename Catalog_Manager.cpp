@@ -327,7 +327,7 @@ bool CatalogManager::createIndex(SQLstatement &sql, Table *t)
 {
 	bool add = true;
 	Index *index = new Index();
-	index->columnLength = sql.attributes.data()->length;
+	index->columnLength = getAttributebya(t, sql.attributes[0].name)->length;
 	index->index_name = sql.indexName;
 	index->startposition = 1;
 	vector<Attribute>::iterator iter;
@@ -614,11 +614,22 @@ void CatalogManager::update_indexInfo()
 	}
 }
 
-Attribute* CatalogManager::getAttribute(Table *t, string in)
+Attribute* CatalogManager::getAttributebyi(Table *t, string in)
 {
 	vector<Attribute>::iterator iter;
 	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
 		if (iter->indexName == in){
+			return &(*iter);
+		}
+	}
+	return NULL;
+}
+
+Attribute* CatalogManager::getAttributebya(Table *t, string an)
+{
+	vector<Attribute>::iterator iter;
+	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
+		if (iter->name == an){
 			return &(*iter);
 		}
 	}

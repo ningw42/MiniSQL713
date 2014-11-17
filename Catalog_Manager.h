@@ -35,7 +35,8 @@ public:
 	bool save_indexInfo(Index *i, bool add); // 存入索引信息
 	void read_indexInfo(); // 读出索引信息
 	void update_indexInfo(); // 更新索引信息
-	Attribute* getAttribute(Table *t, string an); // 返回属性指针
+	Attribute* getAttributebya(Table *t, string an); // 返回属性指针
+	Attribute* getAttributebyi(Table *t, string in); // 返回属性指针
 
 	string msg; // 传送消息
 };
