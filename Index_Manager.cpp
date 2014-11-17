@@ -272,7 +272,7 @@ Data<KEY> Leaf<KEY>::getfront(){
 template <class KEY>
 void IndexManager<KEY>::createIndex(Table & tableinfo, Index & indexinfo){
 	string filename = indexinfo.index_name + ".index";
-	fstream  fout(filename.c_str(), ios::out|ios::binary);
+	fstream  fout(("./bm/" + filename).c_str(), ios::out | ios::binary);
 	fout.close();
 	int blockNum = bm.getEmptyBuffer();
 	bm.bufferBlock[blockNum].filename = filename;

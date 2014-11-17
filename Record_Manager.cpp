@@ -1,7 +1,7 @@
 ﻿#include "Record_Manager.h"
 #include "Buffer_Manager.h"
 
-extern BufferManager bm;
+BufferManager bm;
 
 //bool RecordManager::createTable(Table & table)
 //{}

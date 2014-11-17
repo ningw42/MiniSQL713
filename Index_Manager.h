@@ -3,9 +3,7 @@
 
 #define EMPTY '@'
 
-
 #include "MiniSQL.h"
-
 
 enum PointerType{ FATHER, LEFT, RIGHT };
 

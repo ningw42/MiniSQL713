@@ -3,10 +3,14 @@
 #include "Interpreter.h"
 #include "Buffer_Manager.h"
 #include "Record_Manager.h"
+#include "Index_Manager.h"
 
 extern CatalogManager cm;
-extern BufferManager bm;
-extern RecordManager rm;
+RecordManager rm;
+IndexManager<int> imInt;
+IndexManager<float> imFloat;
+IndexManager<string> imString
+;
 extern bool quitFlag;
 void APIMoudule::API(SQLstatement &s)
 {
@@ -21,6 +25,21 @@ void APIMoudule::API(SQLstatement &s)
 	else if (s.type == CREATE_INDEX){
 		if (cm.API_Catalog(s)){
 			// µ÷index
+			Index *i = cm.findIndex(s.indexName);
+			Table *t = cm.findTable(s.tableName);
+			TYPE type = cm.getAttribute(t, i->index_name)->type;
+			if (type == MYINT){
+				//imInt.createIndex(*t, *i);
+			}
+			else if (type == MYFLOAT){
+				//imFloat.createIndex(*t, *i);
+			}
+			else if (type == MYCHAR){
+				//imString.createIndex(*t, *i);
+			}
+			else{
+				cout << "wrong type." << endl;
+			}
 		}
 		else{
 			cout << "create index failed" << endl;

@@ -26,16 +26,6 @@ enum TYPE { MYINT = 0, MYFLOAT = 1, MYCHAR = 2 };
 enum RELATION_TYPE { EQUAL, NOT_EQUAL, GREATER, GREATER_EQUAL, SMALLER, SMALLER_EQUAL, AND, OR};
 enum STATEMENT_TYPE { CREATE_DATABASE, CREATE_TABLE, CREATE_INDEX, DROP_TABLE, DROP_INDEX, DROP_DATABASE, SELECT, SELECT_WHERE, INSERT, MYDELETE, DELETE_WHERE, USE, EXECFILE, QUIT, HELP, ILLEGAL};
 
-//定义表的索引节点信息
-struct index_info
-{
-	string index_name;
-	int length;
-	char type;
-	long offset;
-	string value;
-};
-
 //定义属性信息
 class Attribute
 {

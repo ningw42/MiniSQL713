@@ -43,7 +43,7 @@ BufferManager::~BufferManager(){
 void BufferManager::writeBack(int bufferNum){
 	if (!bufferBlock[bufferNum].isWritten)return;
 	string filename = bufferBlock[bufferNum].filename;
-	fstream  fs(filename.c_str(), ios::out | ios::binary | ios::app);
+	fstream  fs(("./bm/" + filename).c_str(), ios::out | ios::binary | ios::app);
 	fs.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, fs.beg);
 	fs.write(bufferBlock[bufferNum].value, BLOCKSIZE);
 	bufferBlock[bufferNum].init();
@@ -67,7 +67,7 @@ int BufferManager::getIfIsInBuffer(string filename, int blockOffset){
 }
 
 void BufferManager::readBlock(string filename, int blockOffset, int bufferNum){
-	fstream fs(filename.c_str(), ios::in|ios::binary);
+	fstream fs(("./bm/" + filename).c_str(), ios::in | ios::binary);
 	bufferBlock[bufferNum].isValid = 1;
 	bufferBlock[bufferNum].isWritten = 0;
 	bufferBlock[bufferNum].filename = filename;
@@ -182,7 +182,7 @@ int BufferManager::addBlockInFile(Table & fil){
 }
 void BufferManager::scanIn(Table fil){
 	string filename = fil.name + ".table";
-	fstream fin(filename.c_str(), ios::in|ios::binary);
+	fstream fin(("./bm/" + filename).c_str(), ios::in | ios::binary);
 	for (int blockOffset = 0; blockOffset < fil.blockNum; blockOffset++){
 		if (getIfIsInBuffer(filename, blockOffset) == -1){
 			int bufferNum = getEmptyBufferExcept(filename);
