@@ -40,7 +40,7 @@ void APIMoudule::API(SQLstatement &s)
 			// µ÷index
 		}
 		else{
-			cout << "create index failed" << endl;
+			cout << "drop index failed" << endl;
 		}
 	}
 	else if (s.type == SELECT){

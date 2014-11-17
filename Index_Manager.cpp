@@ -2,10 +2,13 @@
 #include "Buffer_Manager.h"
 
 extern BufferManager bm;
-bool Node::isRoot(int buffernum){
+template <class KEY>
+bool Node<KEY>::isRoot(int buffernum){
 	return bm.bufferBlock[bufferNum].value[0] == '1';
 	}
-int Node::getRecordNum(int bufferNum){
+
+template <class KEY> 
+int Node<KEY>::getRecordNum(int bufferNum){
 	int recordNum = 0;
 	int num;
 	char * temp;	// 待new
@@ -16,32 +19,33 @@ int Node::getRecordNum(int bufferNum){
 	num = *((int *)(&temp));
 	return recordNum;
 }
-int Node::getPointer(PointerType pp){
-	char * temp;
+template <class KEY>
+int Node<KEY>::getPointer(PointerType pp){
+	char* temp;
 	int num;
 	switch (pp){
 	case FATHER:
-		for(int i = 6;i<10;i++){
-		temp[i-6] = bm.bufferBlock[bufferNum].value[i];	//new
-		}
+		for(int i = 6;i<10;i++)
+			temp[i-6] = bm.bufferBlock[bufferNum].value[i];	//new
+		
 		num = *((int *)&temp);
 		return num;
 	case LEFT:
 		for(int i = 10;i<14;i++){
-		temp[i-10] = bm.bufferBlock[bufferNum].value[i];
+			temp[i-10] = bm.bufferBlock[bufferNum].value[i];
 		}
 		num = *((int *)&temp);
 		return num;
 	case RIGHT:
 		for(int i = 14;i<18;i++){
-		temp[i-14] = bm.bufferBlock[bufferNum].value[i];
+			temp[i-14] = bm.bufferBlock[bufferNum].value[i];
 		}
 		num = *((int *)&temp);
 		return num;
 	}
 }
-
-InnerNode::InnerNode(int bufferNumber, const Index& index){
+template <class KEY>
+InnerNode<KEY>::InnerNode(int bufferNumber, const Index& index){
 	bufferNum = bufferNumber;
 
 	Root = isRoot(bufferNumber);
@@ -71,7 +75,8 @@ InnerNode::InnerNode(int bufferNumber, const Index& index){
 		insert(data);
 	}
 }
-InnerNode::~InnerNode(){
+template <class KEY>
+InnerNode<KEY>::~InnerNode(){
 	if(isRoot(bufferNum)) {
 		bm.bufferBlock[bufferNum].value[0] = '1';
 	}
@@ -106,10 +111,10 @@ InnerNode::~InnerNode(){
 		position +=sizeof(int);
 	}
 }
+template <class KEY>
+void InnerNode<KEY>::insert(InnerData<KEY> data){
 
-void InnerNode::insert(InnerData data){
-
-	list<InnerData>::iterator i = nodelist.begin();
+	list<InnerData<KEY>>::iterator i = nodelist.begin();
 	if(nodelist.size() == 0)
 		nodelist.insert(i, data);
 	else{
@@ -118,19 +123,19 @@ void InnerNode::insert(InnerData data){
 		nodelist.insert(i, data);
 	}
 }
-
-InnerData InnerNode::pop(){
+template <class KEY>
+InnerData<KEY> InnerNode<KEY>::pop(){
 	recordNum--;
-	InnerData tmpt = nodelist.back();
+	InnerData<KEY> tmpt = nodelist.back();
 	nodelist.pop_back();
 	return tmpt;
 }
-
-InnerData InnerNode::getfront(){
+template <class KEY>
+InnerData<KEY> InnerNode<KEY>::getfront(){
 		return nodelist.front();
 	}
-
-int InnerNode::getrecordNum(int buffernum){
+template <class KEY>
+int InnerNode<KEY>::getrecordNum(int buffernum){
 	char * temp;
 	int num;
 	for(int i = 2;i<6;i++){
@@ -140,14 +145,14 @@ int InnerNode::getrecordNum(int buffernum){
 	return num;
 }
 
-
-Leaf::Leaf(int bufnum){
+template <class KEY>
+Leaf<KEY>::Leaf(int bufnum){
 	bufferNum = bufnum;
 	recordNum = 0;
 	nextSibling = lastSibling = 0;
 }
-
-Leaf::Leaf(int bufnum,const Index& indexinfo){
+template <class KEY>
+Leaf<KEY>::Leaf(int bufnum,const Index& indexinfo){
 	bufferNum = bufnum;
 	Root = isRoot(bufnum);
 	pointFather = getPointer(FATHER);
@@ -180,8 +185,8 @@ Leaf::Leaf(int bufnum,const Index& indexinfo){
 		insert(newdata);
 	}
 }
-
-Leaf::~Leaf(){
+template <class KEY>
+Leaf<KEY>::~Leaf(){
 	if(Root) bm.bufferBlock[bufferNum].value[0] = '1';
 	else bm.bufferBlock[bufferNum].value[0] = '0';
 	bm.bufferBlock[bufferNum].value[1] = '1';
@@ -239,9 +244,9 @@ Leaf::~Leaf(){
 	}
 
 }
-
-void Leaf::insert(Data data){
-	list<Data>::iterator i = nodelist.begin();
+template <class KEY>
+void Leaf<KEY>::insert(Data<KEY> data){
+	list<Data<KEY>>::iterator i = nodelist.begin();
 	if(nodelist.size() == 0){
 		nodelist.insert(i, data);
 		return;
@@ -253,19 +258,19 @@ void Leaf::insert(Data data){
 	}
 	nodelist.insert(i, data);
 }
-
-Data Leaf::pop(){
+template <class KEY>
+Data<KEY> Leaf<KEY>::pop(){
 	recordNum--;
 	Data tmpt = nodelist.back();
 	nodelist.pop_back();
 	return tmpt;
 }
-
-Data Leaf::getfront(){
+template <class KEY>
+Data<KEY> Leaf<KEY>::getfront(){
 	return nodelist.front();
 }
-
-void IndexManager::createIndex(Table & tableinfo, Index & indexinfo){
+template <class KEY>
+void IndexManager<KEY>::createIndex(Table & tableinfo, Index & indexinfo){
 	string filename = indexinfo.index_name + ".index";
 	fstream  fout(filename.c_str(), ios::out|ios::binary);
 	fout.close();
@@ -274,8 +279,8 @@ void IndexManager::createIndex(Table & tableinfo, Index & indexinfo){
 	bm.bufferBlock[blockNum].blockOffset = 0;
 	bm.bufferBlock[blockNum].isWritten = 1;
 	bm.bufferBlock[blockNum].isValid = 1;
-	bm.bufferBlock[blockNum].value[0] = '1';//block的第一位标记是否是根
-	bm.bufferBlock[blockNum].value[1] = '1';//block的第二位标记是否是叶节点
+	bm.bufferBlock[blockNum].value[0] = '1';   //block的第一位标记是否是根
+	bm.bufferBlock[blockNum].value[1] = '1';  //block的第二位标记是否是叶节点
 	int recordNum = 0;
 	char* temp;
 	temp = (char *)(&recordNum);
@@ -314,15 +319,15 @@ void IndexManager::createIndex(Table & tableinfo, Index & indexinfo){
 			t[k] = bm.bufferBlock[bufferNum].value[position+indexinfo.startposition+k];
 			}
 			tuple = *((KEY *)(&t));
-			Data node(tuple,blockOffset, offset);
+			Data<KEY> node(tuple,blockOffset, offset);
 			insertValue(indexinfo, node);
 		}
 
 	}
 }
-
-InnerData IndexManager::insertValue(Index& indexinfo, Data node, int blockOffset){
-	InnerData reBranch;
+template <class KEY>
+InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, int blockOffset){
+	InnerData<KEY> reBranch;
 	string filename = indexinfo.index_name + ".index";
 	int bufferNum = bm.getbufferNum(filename, blockOffset);
 	bool isLeaf = ( bm.bufferBlock[bufferNum].value[1] == '1' );
@@ -397,7 +402,7 @@ InnerData IndexManager::insertValue(Index& indexinfo, Data node, int blockOffset
 	}
 	else{//not a leaf
 		InnerNode branch(bufferNum, indexinfo);
-		list<InnerData>::iterator i = branch.nodelist.begin();
+		list<InnerData<KEY>>::iterator i = branch.nodelist.begin();
 		if((*i).key > node.key){
 			(*i).key = node.key;
 		}
@@ -468,8 +473,8 @@ InnerData IndexManager::insertValue(Index& indexinfo, Data node, int blockOffset
 	}
 	return reBranch;//here is just for safe
 }
-
-char * IndexManager::selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset){
+template <class KEY>
+char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset){
 	string filename = indexinfor.index_name + ".index";
 	char * temp;
 	int bufferNum = bm.getbufferNum(filename, blockOffset);
@@ -504,8 +509,8 @@ char * IndexManager::selectEqual(const Table& tableinfor, const Index& indexinfo
 	}
 	return temp;
 }
-
-void IndexManager::dropIndex(Index& indexinfor){
+template <class KEY>
+void IndexManager<KEY>::dropIndex(Index& indexinfor){
 	string filename = indexinfor.index_name + ".index";
 	if( remove(filename.c_str()) != 0 )
 		perror( "Error " );

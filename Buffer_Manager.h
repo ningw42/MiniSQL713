@@ -30,11 +30,6 @@ public:
 };
 
 class BufferManager{
-	friend class RecordManager;
-	friend class IndexManager;
-	friend class Leaf;
-	friend class Branch;
-	friend class BPlusTree;
 public:
 	BufferManager();
 	~BufferManager();

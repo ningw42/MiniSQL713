@@ -66,12 +66,19 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 		}
 	}
 	else if (sql.type == DROP_INDEX){
-		Table *t = findTable(sql.tableName);
-		Index *i = findIndex(sql.indexName);
-		if (dropIndex(t, i)){
-			return true;
+		Index *i;
+		if (i = findIndex(sql.indexName)){
+			Table *t = findTable(i->table_name);
+			if (dropIndex(t, i)){
+				return true;
+			}
+			return false;
 		}
-		return false;
+		else{
+			cout << sql.indexName << " not exist." << endl;
+			return false;
+		}
+		
 	}
 	else if (sql.type == SELECT){
 		bool index = false;
@@ -339,7 +346,7 @@ bool CatalogManager::createIndex(SQLstatement &sql, Table *t)
 	return false;
 }
 
-bool CatalogManager::checkIndex(Table *t, string in, bool add)
+bool CatalogManager::clearIndex(Table *t, string in, bool add)
 {
 	vector<Attribute>::iterator iter;
 	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
@@ -361,7 +368,7 @@ void CatalogManager::pushBack_indexList(Index &i)
 bool CatalogManager::dropIndex(Table *t, Index *i)
 {
 	bool add = false;
-	if (checkIndex(t, i->index_name, add)){
+	if (clearIndex(t, i->index_name, add)){
 		cout << i->index_name << " dropped successfully." << endl;
 	}
 	else{
@@ -372,7 +379,7 @@ bool CatalogManager::dropIndex(Table *t, Index *i)
 	for (iter = indexList.begin(); iter != indexList.end();)
 	{
 		if (iter->index_name == i->index_name){
-			if (!save_tableInfo(t, add)){
+			if (!save_indexInfo(i, add)){
 				return false;
 			}
 			iter = indexList.erase(iter);
@@ -551,14 +558,14 @@ bool CatalogManager::save_indexInfo(Index *i, bool add)
 		}
 	}
 	else{
-		/*if (remove(("./cm/" + i->name).c_str())){
-			cout << i->name << " not exist." << endl;
+		if (remove(("./cm/index/" + i->index_name + "." + i->table_name).c_str())){
+			cout << i->index_name << " not exist." << endl;
 			return false;
 		}
 		else{
-			cout << i->name << " removed." << endl;
+			cout << i->index_name << " removed." << endl;
 			return true;
-		}*/
+		}
 	}
 }
 
