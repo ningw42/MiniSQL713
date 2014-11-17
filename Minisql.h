@@ -112,4 +112,17 @@ public:
 	RELATION_TYPE getRelationType(string oper);
 	STATEMENT_TYPE identify(string type_code);
 };
+
+// 定义索引信息
+class Index
+{
+public:
+	string index_name;
+	string table_name;
+	int startposition;
+	int tuplelength;
+	int columnLength;
+	int IndexOffset;
+	Index() :IndexOffset(0){}
+};
 #endif

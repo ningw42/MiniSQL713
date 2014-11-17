@@ -6,20 +6,7 @@
 
 #include "MiniSQL.h"
 
-
 enum PointerType{ FATHER, LEFT, RIGHT };
-class Index
-{
-public:
-	string index_name;
-	string table_name;
-	int column;
-	int startposition;
-	int tuplelength;
-	int columnLength;
-	int IndexOffset;
-	Index() : column(0), IndexOffset(0){}
-};
 
 class Data{
 public:

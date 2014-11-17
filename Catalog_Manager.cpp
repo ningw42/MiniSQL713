@@ -20,21 +20,27 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 		}
 	}
 	else if (sql.type == CREATE_INDEX){
+		bool index = true;
 		Table *t = findTable(sql.tableName);
 		if (t){
-			if (checkAttribute(t, &sql.attributes)){
-				if (createIndex(sql.indexName, t, sql.attributes.data())){
-					// 调index;
-					return true;
+			if (checkAttribute(t, &sql.attributes, index)){
+				if (findIndex(sql.indexName)){
+					cout << sql.indexName << " existed." << endl;
+					return false;
 				}
 				else{
-					return false;
+					if (createIndex(sql, t)){
+						cout << sql.indexName << " created successfully." << endl;
+						return true;
+					}
+					else{
+						return true;
+					}
 				}
 			}
 			else{
 				return false;
 			}
-			
 		}
 		else{
 			cout << sql.tableName << " not exist." << endl;
@@ -60,19 +66,18 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 		}
 	}
 	else if (sql.type == DROP_INDEX){
-		vector<Table>::iterator iter;
-		for (iter = tableList.begin(); iter != tableList.end(); iter++){
-			if (dropIndex(&(*iter), sql.indexName)){
-				// 调index
-				return true;
-			}
+		Table *t = findTable(sql.tableName);
+		Index *i = findIndex(sql.indexName);
+		if (dropIndex(t, i)){
+			return true;
 		}
 		return false;
 	}
 	else if (sql.type == SELECT){
+		bool index = false;
 		Table *t = findTable(sql.tableName);
 		if (t){
-			if (checkAttribute(t, &sql.attributes)){
+			if (checkAttribute(t, &sql.attributes, index)){
 				return true;
 			}
 			else{
@@ -85,9 +90,10 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 		}
 	}
 	else if (sql.type == SELECT_WHERE){
+		bool index = false;
 		Table *t = findTable(sql.tableName);
 		if (t){
-			if (checkAttribute(t, &sql.attributes) && checkCondition(t, &sql.conditions)){
+			if (checkAttribute(t, &sql.attributes, index) && checkCondition(t, &sql.conditions)){
 				return true;
 			}
 			else{
@@ -210,7 +216,7 @@ bool CatalogManager::checkInsert(Table *t, string value)
 	}
 }
 
-bool CatalogManager::checkAttribute(Table *t, vector<Attribute> *a)
+bool CatalogManager::checkAttribute(Table *t, vector<Attribute> *a, bool index)
 {
 	vector<Attribute>::iterator iter;
 	for (iter = a->begin(); iter != a->end(); iter++){
@@ -221,6 +227,12 @@ bool CatalogManager::checkAttribute(Table *t, vector<Attribute> *a)
 		bool flag = false;
 		for (iter2 = t->attributes.begin(); iter2 != t->attributes.end(); iter2++){
 			if (iter->name == iter2->name){
+				if (index){
+					if (!(iter2->isPrimaryKey || iter2->isUnique)){
+						cout << iter->name << " not primary or unique." << endl;
+						return false;
+					}
+				}
 				flag = true;
 				break;
 			}
@@ -291,34 +303,48 @@ bool CatalogManager::checkType(Attribute *a, string v)
 		return false;
 }
 
-bool CatalogManager::createIndex(string in, Table *t, Attribute *a)
+Index* CatalogManager::findIndex(string in)
 {
-	bool drop = false;
-	if (checkIndex(t, in, drop)){
-		cout << in << " existed." << endl;
-		return false;
+	vector<Index> ::iterator iter;
+	for (iter = indexList.begin(); iter != indexList.end(); iter++)
+	{
+		if (iter->index_name == in)
+		{
+			return &(*iter);
+		}
 	}
+	return NULL;
+}
+
+bool CatalogManager::createIndex(SQLstatement &sql, Table *t)
+{
+	bool add = true;
+	Index *index = new Index();
+	index->columnLength = sql.attributes.data()->length;
+	index->index_name = sql.indexName;
+	index->startposition = 1;
 	vector<Attribute>::iterator iter;
 	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
-		if (iter->name == a->name && (iter->isPrimaryKey || iter->isUnique)){
-			iter->indexName = in;
-			cout << in << " created successfully." << endl;
-			return true;
+		if (iter->name == sql.attributes.data()->name){
+			iter->indexName = sql.indexName;
+			index->table_name = sql.tableName;
+			index->tuplelength = t->tupleLength;
+			pushBack_indexList(*index);
+			return save_indexInfo(index, add);
 		}
 		else {
-			cout << iter->name << " not primary or unique." << endl;
-			return false;
+			index->startposition += iter->length;
 		}
 	}
 	return false;
 }
 
-bool CatalogManager::checkIndex(Table *t, string in, bool drop)
+bool CatalogManager::checkIndex(Table *t, string in, bool add)
 {
 	vector<Attribute>::iterator iter;
 	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
 		if (iter->indexName == in){
-			if (drop){
+			if (!add){
 				iter->indexName = "";
 			}
 			return true;
@@ -327,15 +353,36 @@ bool CatalogManager::checkIndex(Table *t, string in, bool drop)
 	return false;
 }
 
-bool CatalogManager::dropIndex(Table *t, string in)
+void CatalogManager::pushBack_indexList(Index &i)
 {
-	bool drop = true;
-	if (checkIndex(t, in, drop)){
-		cout << in << " dropped successfully." << endl;
-		return true;
+	indexList.push_back(i);
+}
+
+bool CatalogManager::dropIndex(Table *t, Index *i)
+{
+	bool add = false;
+	if (checkIndex(t, i->index_name, add)){
+		cout << i->index_name << " dropped successfully." << endl;
 	}
-	cout << in << " not exist." << endl;
-	return false;
+	else{
+		cout << i->index_name << " not exist." << endl;
+		return false;
+	}
+	vector<Index>::iterator iter;
+	for (iter = indexList.begin(); iter != indexList.end();)
+	{
+		if (iter->index_name == i->index_name){
+			if (!save_tableInfo(t, add)){
+				return false;
+			}
+			iter = indexList.erase(iter);
+
+			break;
+		}
+		else
+			iter++;
+	} // 误删SQLstatement对象attribute造成段错误
+	return true;
 }
 
 bool CatalogManager::dropTable(Table *t)
@@ -362,17 +409,18 @@ bool CatalogManager::save_tableInfo(Table *t, bool add)
 {
 	if (add){
 		ofstream fout;
-		fout.open("./cm/" + t->name, ios::trunc);
+		fout.open("./cm/table/" + t->name, ios::trunc);
 		if (fout){
 			vector<Attribute>::iterator iter;
 			fout.close();
 			for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
 				writeAttribute(t->name, &(*iter));
 			}
-			fout.open("./cm/" + t->name, ios::_Nocreate | ios::app);
+			fout.open("./cm/table/" + t->name, ios::_Nocreate | ios::app);
 			fout << ";" << endl;
 			fout << t->attriNum << endl;
 			fout << t->blockNum << endl;
+			fout << t->name << endl;
 			fout << t->primaryKey << endl;
 			fout << t->recordNum << endl;
 			fout << t->tupleLength << endl;
@@ -386,7 +434,7 @@ bool CatalogManager::save_tableInfo(Table *t, bool add)
 		}
 	}
 	else{
-		if (remove(("./cm/" + t->name).c_str())){
+		if (remove(("./cm/table/" + t->name).c_str())){
 			cout << t->name << " not exist." << endl;
 			return false;
 		}
@@ -400,7 +448,7 @@ bool CatalogManager::save_tableInfo(Table *t, bool add)
 void CatalogManager::writeAttribute(string fn, Attribute *a)
 {
 	ofstream fout;
-	fout.open("./cm/" + fn, ios::_Nocreate | ios::app);
+	fout.open("./cm/table/" + fn, ios::_Nocreate | ios::app);
 	if (fout){
 		fout << ":" << endl;
 		fout << a->indexName << endl;
@@ -416,14 +464,14 @@ void CatalogManager::writeAttribute(string fn, Attribute *a)
 	fout.close();
 }
 
-void CatalogManager::read_TableInfo()
+void CatalogManager::read_tableInfo()
 {
 	DIR *dir;
 	struct dirent *ent;
-	if ((dir = opendir("./cm/")) != NULL) {
+	if ((dir = opendir("./cm/table/")) != NULL) {
 		while ((ent = readdir(dir)) != NULL) {
 			string fn(ent->d_name);
-			ifstream fin("./cm/" + fn, ios::_Nocreate);
+			ifstream fin("./cm/table/" + fn, ios::_Nocreate);
 			if (fin){
 				vector<Attribute> va;
 				Table *t = new Table();
@@ -454,7 +502,7 @@ void CatalogManager::read_TableInfo()
 				t->attriNum = stoi(s);
 				getline(fin, s);
 				t->blockNum = stoi(s);
-				t->name = fn;
+				getline(fin, t->name);
 				getline(fin, t->primaryKey);
 				getline(fin, s);
 				t->recordNum = stoi(s);
@@ -466,7 +514,7 @@ void CatalogManager::read_TableInfo()
 		closedir(dir);
 	}
 	else {
-		cout << "directory cm not exist." << endl;
+		cout << "directory ./cm/table/ not exist." << endl;
 	}
 	tableNum = tableList.size();
 }
@@ -477,5 +525,84 @@ void CatalogManager::update_tableInfo()
 	vector<Table>::iterator iter;
 	for (iter = tableList.begin(); iter != tableList.end(); iter++){
 		save_tableInfo(&(*iter), add);
+	}
+}
+
+bool CatalogManager::save_indexInfo(Index *i, bool add)
+{
+	if (add){
+		ofstream fout;
+		fout.open("./cm/index/" + i->index_name + "." + i->table_name, ios::trunc);
+		if (fout){
+			fout << ";" << endl;
+			fout << i->columnLength << endl;
+			fout << i->IndexOffset << endl;
+			fout << i->index_name << endl;
+			fout << i->startposition << endl;
+			fout << i->table_name << endl;
+			fout << i->tuplelength << endl;
+			fout.close();
+			return true;
+		}
+		else{
+			cout << "open file failed." << endl;
+			fout.close();
+			return false;
+		}
+	}
+	else{
+		/*if (remove(("./cm/" + i->name).c_str())){
+			cout << i->name << " not exist." << endl;
+			return false;
+		}
+		else{
+			cout << i->name << " removed." << endl;
+			return true;
+		}*/
+	}
+}
+
+void CatalogManager::read_indexInfo()
+{
+	DIR *dir;
+	struct dirent *ent;
+	if ((dir = opendir("./cm/index/")) != NULL) {
+		while ((ent = readdir(dir)) != NULL) {
+			string fn(ent->d_name);
+			ifstream fin("./cm/index/" + fn, ios::_Nocreate);
+			if (fin){
+				Index *i = new Index();
+				string s;
+				getline(fin, s);
+				if (s == ""){
+					cout << "wrong file." << endl;
+					exit(0);
+				}
+				getline(fin, s);
+				i->columnLength = stoi(s);
+				getline(fin, s);
+				i->IndexOffset = stoi(s);
+				getline(fin, i->index_name);
+				getline(fin, s);
+				i->startposition = stoi(s);
+				getline(fin, i->table_name);
+				getline(fin, s);
+				i->tuplelength = stoi(s);
+				indexList.push_back(*i);
+			}
+		}
+		closedir(dir);
+	}
+	else {
+		cout << "directory ./cm/index/ not exist." << endl;
+	}
+}
+
+void CatalogManager::update_indexInfo()
+{
+	bool add = true;
+	vector<Index>::iterator iter;
+	for (iter = indexList.begin(); iter != indexList.end(); iter++){
+		save_indexInfo(&(*iter), add);
 	}
 }

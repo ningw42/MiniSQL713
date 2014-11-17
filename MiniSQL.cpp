@@ -25,7 +25,8 @@ int main(void)
 	cout << "\t\t*************************************************" << endl;
 	cout << "Type HELP; for instructions." << endl;
 	cout << endl;
-	cm.read_TableInfo();
+	cm.read_tableInfo();
+	cm.read_indexInfo();
 
 	while(1)
 	{

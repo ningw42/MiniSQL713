@@ -162,6 +162,7 @@ void APIMoudule::API(SQLstatement &s)
 		quitFlag = true;
 		// 保存表信息
 		cm.update_tableInfo();
+		cm.update_indexInfo();
 	}
 	else if (s.type == HELP){
 		getHelp();
