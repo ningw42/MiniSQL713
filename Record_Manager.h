@@ -15,6 +15,8 @@ public:
 	bool satisfy(const Condition & cond, const string & value);	// 需要维护condition里的attribute的所有信息
 	bool satisfy(const Condition & cond, const string & value, const TYPE type);
 	bool contains(const vector<Attribute> & attributes, const Attribute & attr);
+	bool ConstraintCheck(char * tempData, const Table & table);
+	bool isExist(char * data, int currentPos, int length, TYPE type, const Table & table);
 	int hasCondition(const vector<Condition> & conditions, const string & attrName);
 	int findIndexOf(const vector<Attribute> & attributes, const Condition & condition);
 	int copyinto(char * buffer, const char * from, int start, int length);

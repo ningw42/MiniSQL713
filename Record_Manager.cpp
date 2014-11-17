@@ -2,7 +2,6 @@
 #include "Buffer_Manager.h"
 
 extern BufferManager bm;
-// 坑1:primaryKey unique
 
 //bool RecordManager::createTable(Table & table)
 //{}
@@ -90,6 +89,7 @@ int RecordManager::deleteWithoutwhere(Table & table)
 
 bool RecordManager::insertValue(Table & table, const string & values)
 {
+	bm.scanIn(table);
 	int writeLength = table.tupleLength + 1;
 	char * tempData = new char[writeLength];	// new
 	int currentPos = 0;							// 当前tempData的写入位置
@@ -137,16 +137,24 @@ bool RecordManager::insertValue(Table & table, const string & values)
 
 	// 将tempData写入真正的buffer												
 	// 维护table的recordNum
-	insertPos insertPos = bm.getInsertPosition(table);
-	int bufferIndex = insertPos.bufferNUM;
-	int blockIndex = insertPos.position;
-	for (int i = 0; i < writeLength; i++)
-	{	
-		bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
-	}	
-	table.recordNum++;
-	delete[] tempData;
-	return true;
+	if (ConstraintCheck(tempData, table))
+	{
+		insertPos insertPos = bm.getInsertPosition(table);
+		int bufferIndex = insertPos.bufferNUM;
+		int blockIndex = insertPos.position;
+		for (int i = 0; i < writeLength; i++)
+		{
+			bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
+		}
+		table.recordNum++;
+		delete[] tempData;
+		return true;
+	}
+	else
+	{
+		delete[] tempData;
+		return false;
+	}
 }
 
 int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)
@@ -303,6 +311,63 @@ int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & a
 		delete[] cluster;
 		return 0;
 	}
+}
+
+bool RecordManager::isExist(char * data, int currentPos, int length, TYPE type, const Table & table)
+{
+	// 字符化后比较
+	string key = toString(data + currentPos, length, type);
+	int readSize = table.tupleLength + 1;
+
+	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+	{
+		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
+		{
+			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
+			{
+				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+				if (visibleBit)
+				{
+					string existValue = toString(bm.bufferBlock[bufferIndex].value + currentPos, length, type);
+					if (existValue == key)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool RecordManager::ConstraintCheck(char * tempData, const Table & table)
+{
+	int currentPos = 1;
+	for (size_t i = 0; i < table.attributes.size(); i++)
+	{
+		bool isUnique = table.attributes[i].isUnique;
+		bool isPrimay = table.attributes[i].isPrimaryKey;
+		int length = table.attributes[i].length;
+		TYPE type = table.attributes[i].type;
+		if (isPrimay)
+		{
+			if (isExist(tempData, currentPos, length, type, table))
+			{
+				cout << table.attributes[i].name << " is primary key. " << toString(tempData + currentPos, length, type) << " can't be inserted" << endl;
+				return false;
+			}
+		}
+		else if (isUnique)
+		{
+			if (isExist(tempData, currentPos, length, type, table))
+			{
+				cout << table.attributes[i].name << " is unique. " << toString(tempData + currentPos, length, type) << " can't be inserted" << endl;
+				return false;
+			}
+		}
+		currentPos += table.attributes[i].length;
+	}
+	return true;
 }
 
 string RecordManager::toString(const char * source, int length, TYPE type)
