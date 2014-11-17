@@ -50,8 +50,8 @@ void APIMoudule::API(SQLstatement &s)
 			int resultCount = rm.selectWithoutwhere(*cm.findTable(s.tableName), s.attributes);
 			if (resultCount)
 			{
-				cout << resultCount << " row(s) selected:" << endl;
 				rm.outputMap(resultCount);
+				cout << resultCount << " row(s) selected:" << endl;
 			}
 			else
 			{
@@ -69,8 +69,8 @@ void APIMoudule::API(SQLstatement &s)
 			int resultCount = rm.selectWithwhere(*cm.findTable(s.tableName), s.attributes, s.conditions);
 			if (resultCount)
 			{
-				cout << resultCount << " row(s) selected:" << endl;
 				rm.outputMap(resultCount);
+				cout << resultCount << " row(s) selected:" << endl;
 			}
 			else
 			{
