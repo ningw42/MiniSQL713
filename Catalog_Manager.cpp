@@ -613,3 +613,14 @@ void CatalogManager::update_indexInfo()
 		save_indexInfo(&(*iter), add);
 	}
 }
+
+Attribute* CatalogManager::getAttribute(Table *t, string an)
+{
+	vector<Attribute>::iterator iter;
+	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
+		if (iter->name == an){
+			return &(*iter);
+		}
+	}
+	return NULL;
+}
