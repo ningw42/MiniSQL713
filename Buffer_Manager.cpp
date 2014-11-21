@@ -43,16 +43,13 @@ BufferManager::~BufferManager(){
 void BufferManager::writeBack(int bufferNum){
 	if (!bufferBlock[bufferNum].isWritten && !bufferBlock[bufferNum].isValid) return;
 	string filename = bufferBlock[bufferNum].filename;
-	if (bufferBlock[bufferNum].isValid ^ bufferBlock[bufferNum].isWritten)
+	if (bufferBlock[bufferNum].isWritten)
 	{
-		fstream  fs(("./bm/" + filename).c_str(), ios::out | ios::binary);
-		fs.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, fs.beg);
-		fs.write(bufferBlock[bufferNum].value, BLOCKSIZE);
-		fs.close();
-	}
-	else
-	{
-		fstream  fs(("./bm/" + filename).c_str(), ios::out | ios::binary | ios::app);
+		fstream  fs(("./bm/" + filename).c_str(), ios::in | ios::out | ios::binary);
+		if (!fs.is_open())
+		{
+			fs = fstream(("./bm/" + filename).c_str(), ios::out | ios::binary);
+		}
 		fs.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, fs.beg);
 		fs.write(bufferBlock[bufferNum].value, BLOCKSIZE);
 		fs.close();

@@ -167,6 +167,7 @@ void APIMoudule::API(SQLstatement &s)
 			string temp;
 			bool finish = false;
 			sql = "";
+			//int tempCount = 0;
 			while (fin >> temp){
 				sql = sql + ' ' + temp;
 				if (sql.at(sql.length() - 1) == ';'){
@@ -177,6 +178,12 @@ void APIMoudule::API(SQLstatement &s)
 					SQLstatement s(sql);
 					API(s);
 					sql = "";
+
+					/*if (!(tempCount % 1000))
+					{
+						cout << 100 * (double)tempCount / 200000 << "%" << endl;
+					}
+					tempCount++;*/
 				}
 			}
 		}

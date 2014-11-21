@@ -40,6 +40,7 @@ int RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions
 					{
 						// set visable bit to 0(false);
 						bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
+						bm.bufferBlock[bufferIndex].isWritten = true;
 						count++;
 					}
 				}
@@ -73,6 +74,7 @@ int RecordManager::deleteWithoutwhere(Table & table)
 				{
 					// set visable bit to 0(false);
 					bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
+					bm.bufferBlock[bufferIndex].isWritten = true;
 					count++;
 				}
 				else if (visibleBit == 64)	// visibleBit == '@' （空）
@@ -137,6 +139,8 @@ bool RecordManager::insertValue(Table & table, const string & values)
 
 	// 将tempData写入真正的buffer												
 	// 维护table的recordNum
+
+
 	if (ConstraintCheck(tempData, table))
 	{
 		insertPos insertPos = bm.getInsertPosition(table);
