@@ -7,6 +7,7 @@
 #include <time.h>
 
 extern CatalogManager cm;
+extern APIMoudule api;
 RecordManager rm;
 IndexManager<int> imInt;
 IndexManager<float> imFloat;
@@ -28,7 +29,7 @@ void APIMoudule::API(SQLstatement &s)
 			// µ÷index
 			Index *i = cm.findIndex(s.indexName);
 			Table *t = cm.findTable(s.tableName);
-			TYPE type = cm.getAttributebyi(t, i->index_name)->type;
+			TYPE type = api.getAttributebyi(t, i->index_name)->type;
 			if (type == MYINT){
 				imInt.createIndex(*t, *i);
 			}
@@ -242,4 +243,15 @@ string APIMoudule::lower(string s)
 {
 	transform(s.begin(), s.end(), s.begin(), ::tolower);
 	return s;
+}
+
+Attribute* APIMoudule::getAttributebyi(Table *t, string in)
+{
+	vector<Attribute>::iterator iter;
+	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
+		if (iter->indexName == in){
+			return &(*iter);
+		}
+	}
+	return NULL;
 }

@@ -150,8 +150,8 @@ bool RecordManager::insertValue(Table & table, const string & values)
 	// 维护table的recordNum
 
 
-	//if (ConstraintCheck(tempData, table))
-	//{
+	if (ConstraintCheck(tempData, table))
+	{
 		insertPos insertPos = bm.getInsertPosition(table);
 		int bufferIndex = insertPos.bufferNUM;
 		int blockIndex = insertPos.position;
@@ -162,12 +162,12 @@ bool RecordManager::insertValue(Table & table, const string & values)
 		table.recordNum++;
 		delete[] tempData;
 		return true;
-	//}
-	//else
-	//{
-	//	delete[] tempData;
-	//	return false;
-	//}
+	}
+	else
+	{
+		delete[] tempData;
+		return false;
+	}
 }
 
 int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)

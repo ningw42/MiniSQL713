@@ -614,16 +614,6 @@ void CatalogManager::update_indexInfo()
 	}
 }
 
-Attribute* CatalogManager::getAttributebyi(Table *t, string in)
-{
-	vector<Attribute>::iterator iter;
-	for (iter = t->attributes.begin(); iter != t->attributes.end(); iter++){
-		if (iter->indexName == in){
-			return &(*iter);
-		}
-	}
-	return NULL;
-}
 
 Attribute* CatalogManager::getAttributebya(Table *t, string an)
 {
