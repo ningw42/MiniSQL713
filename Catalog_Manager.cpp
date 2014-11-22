@@ -30,7 +30,7 @@ bool CatalogManager::API_Catalog(SQLstatement &sql)
 				}
 				else{
 					if (createIndex(sql, t)){
-						cout << sql.indexName << " created successfully." << endl;
+						cout << sql.indexName << " is creating." << endl;
 						return true;
 					}
 					else{

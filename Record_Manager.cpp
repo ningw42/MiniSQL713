@@ -1,9 +1,14 @@
 ﻿#include "Record_Manager.h"
 #include "Buffer_Manager.h"
+#include "Index_Manager.cpp"
+#include "Catalog_Manager.h"
 #include <time.h>
 
 BufferManager bm;
-
+extern CatalogManager cm;
+extern IndexManager<int> imInt;
+extern IndexManager<float> imFloat;
+extern IndexManager<string> imString;
 //bool RecordManager::createTable(Table & table)
 //{}
 bool RecordManager::dropTable(string & tableName)
@@ -145,8 +150,8 @@ bool RecordManager::insertValue(Table & table, const string & values)
 	// 维护table的recordNum
 
 
-	if (ConstraintCheck(tempData, table))
-	{
+	//if (ConstraintCheck(tempData, table))
+	//{
 		insertPos insertPos = bm.getInsertPosition(table);
 		int bufferIndex = insertPos.bufferNUM;
 		int blockIndex = insertPos.position;
@@ -157,17 +162,16 @@ bool RecordManager::insertValue(Table & table, const string & values)
 		table.recordNum++;
 		delete[] tempData;
 		return true;
-	}
-	else
-	{
-		delete[] tempData;
-		return false;
-	}
+	//}
+	//else
+	//{
+	//	delete[] tempData;
+	//	return false;
+	//}
 }
 
 int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attributes, const vector<Condition> & conditions)
 {
-	bm.scanIn(table);
 	attributeValuesMap.clear();				// 清空返回列表					可能存在内存泄露		TO-DO
 	int readSize = table.tupleLength + 1;	// tuple长度 + 一位lazy delete位
 	int selectAttrNum;						// 选择属性个数
@@ -189,51 +193,106 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 	vector<string> * cluster = new vector<string>[selectAttrNum];	// 属性值列表的集合		new需要在API中delete
 	string * allAttrValuestemp = new string[table.attriNum];		// 用于存放当前行的值		new(deleted)
 
-	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+	Condition cond = indexAvailable(table, conditions);
+	if (cond.relationType != UNDEFINED_RELATION)
 	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
+		string indexName;
+		for (size_t i = 0; i < table.attributes.size(); i++)
 		{
-			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
+			if (table.attributes[i].name == cond.attribute.name)
 			{
-				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
-				if (visibleBit == 1)
+				indexName = table.attributes[i].indexName;
+				break;
+			}
+		}
+		Index indexinfo = *cm.findIndex(indexName);
+		char * dataBuffer = NULL;
+		switch (cond.attribute.type)
+		{
+		case MYINT:
+			dataBuffer = imInt.selectEqual(table, indexinfo, stoi(cond.value));
+			break;
+		case MYFLOAT:
+			dataBuffer = imFloat.selectEqual(table, indexinfo, stof(cond.value));
+			break;
+		case MYCHAR:
+			dataBuffer = imString.selectEqual(table, indexinfo, cond.value.substr(1, cond.value.length() - 2));
+			break;
+		default:
+			break;
+		}
+
+		int visibleBit = dataBuffer[0];	// 取得visibleBit
+		if (visibleBit == 1)
+		{
+			int positionOffset = 1;	// 跳过visibleBit
+			int count = 0;	// 选择属性的下标
+			for (int i = 0; i < table.attriNum; i++)
+			{
+				string value = toString(dataBuffer + positionOffset, table.attributes[i].length, table.attributes[i].type);
+				allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
+				if (contains(selectAttrbute, table.attributes[i]))
 				{
-					int positionOffset = 1;	// 跳过visibleBit
-					int count = 0;	// 选择属性的下标
-					for (int i = 0; i < table.attriNum; i++)
-					{
-						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
-						allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
-						if (contains(selectAttrbute, table.attributes[i]))
-						{
-							// 记录是第几个需要的属性
-							cluster[count].push_back(value);/*把值放入列表*/
-							count++;
-						}
-						positionOffset += table.attributes[i].length;
-					}
-
-					//for (int i = 0; i < table.attriNum; i++)
-					//{
-					//	cout << "allAttrValuestemp[" << i << "] = " << allAttrValuestemp[i] << endl;
-					//}
-
-					if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// 判断读取的记录是否符合条件			
-					{													// 可能存在空vector调用pop_back()		TO-DO
-						// 移除不满足条件的tuple（之前无条件放入）
-						for (int i = 0; i < selectAttrNum; i++)
-						{
-							cluster[i].pop_back();
-						}
-					}
+					// 记录是第几个需要的属性
+					cluster[count].push_back(value);/*把值放入列表*/
+					count++;
 				}
-				else if (visibleBit == 64)	// visibleBit == '@' （空）
+				positionOffset += table.attributes[i].length;
+			}
+		}
+		cout << "index" << endl;
+		delete dataBuffer;
+	}
+	else
+	{
+		bm.scanIn(table);
+		for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+		{
+			if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
+			{
+				for (int blockIndex = 0; blockIndex <= BLOCKSIZE - readSize; blockIndex += readSize)	// 有个坑 =号
 				{
-					break;
+					int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+					if (visibleBit == 1)
+					{
+						int positionOffset = 1;	// 跳过visibleBit
+						int count = 0;	// 选择属性的下标
+						for (int i = 0; i < table.attriNum; i++)
+						{
+							string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
+							allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
+							if (contains(selectAttrbute, table.attributes[i]))
+							{
+								// 记录是第几个需要的属性
+								cluster[count].push_back(value);/*把值放入列表*/
+								count++;
+							}
+							positionOffset += table.attributes[i].length;
+						}
+
+						//for (int i = 0; i < table.attriNum; i++)
+						//{
+						//	cout << "allAttrValuestemp[" << i << "] = " << allAttrValuestemp[i] << endl;
+						//}
+
+						if (!satisfy(table.attributes, conditions, allAttrValuestemp))	// 判断读取的记录是否符合条件			
+						{													// 可能存在空vector调用pop_back()		TO-DO
+							// 移除不满足条件的tuple（之前无条件放入）
+							for (int i = 0; i < selectAttrNum; i++)
+							{
+								cluster[i].pop_back();
+							}
+						}
+					}
+					else if (visibleBit == 64)	// visibleBit == '@' （空）
+					{
+						break;
+					}
 				}
 			}
 		}
 	}
+	
 
 	if (cluster[0].size())	// 有选出的属性
 	{
@@ -319,6 +378,29 @@ int RecordManager::selectWithoutwhere(Table & table, const vector<Attribute> & a
 		delete[] cluster;
 		return 0;
 	}
+}
+
+
+bool RecordManager::hasIndex(const Table & table, const string & attrName)
+{
+	for (size_t i = 0; i < table.attributes.size(); i++)
+	{
+		if (table.attributes[i].name == attrName && table.attributes[i].indexName != "")
+			return true;
+	}
+	return false;
+}
+
+Condition RecordManager::indexAvailable(const Table & table, const vector<Condition> & conditions)
+{
+	for (size_t i = 0; i < conditions.size(); i++)
+	{
+		if (conditions[i].relationType == EQUAL && hasIndex(table, conditions[i].attribute.name))
+		{
+			return conditions[i];
+		}
+	}
+	return Condition(Attribute(), "", UNDEFINED_RELATION);
 }
 
 bool RecordManager::isExist(char * data, int currentPos, int length, TYPE type, const Table & table)

@@ -75,6 +75,9 @@ public:
 	InnerData<KEY> insertValue(Index& indexinfor, Data<KEY> node, int blockOffset = 0);
 	char * selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset = 0);
 	void dropIndex(Index& indexinfor);
+	vector<char *>  selectFromTo(Table& table, Index & indexinfo, KEY start,KEY end,int blockOffset = 0);
+	void createIndexforString(Table & tableinfo, Index & indexinfo);
+	char * selectEqualForString(const Table& tableinfor, const Index& indexinfor,string key, int blockOffset=0);
 };
 
 extern BufferManager bm;
@@ -136,13 +139,13 @@ InnerNode<KEY>::InnerNode(int bufferNumber, const Index& index){
 	int tempdata;
 	char * temp = new char[sizeof(KEY)];
 	for(int i = 0;i<count;i++){
-		for(i = 0;i<sizeof(KEY);i++){
-			temp [i] = bm.bufferBlock[bufferNum].value[position+i];
+		for(int j = 0;j<sizeof(KEY);j++){
+			temp [j] = bm.bufferBlock[bufferNum].value[position+j];
 			}
 		tempkey = *((KEY *)temp);
 		position =position + sizeof(KEY);
-		for(i = 0;i<sizeof(int);i++){
-			temp [i] = bm.bufferBlock[bufferNum].value[position+i];
+		for(int k = 0;k<sizeof(int);k++){
+			temp [k] = bm.bufferBlock[bufferNum].value[position+k];
 			}
 		tempdata = *((int *)temp);
 		position = position + sizeof(int);
@@ -277,7 +280,7 @@ Leaf<KEY>::Leaf(int bufnum,const Index& indexinfo){
 }
 template <class KEY>
 Leaf<KEY>::~Leaf(){
-	cout << "start" << endl;
+	//cout << "start" << endl;
 	if(Root) bm.bufferBlock[bufferNum].value[0] = '1';
 	else bm.bufferBlock[bufferNum].value[0] = '0';
 	bm.bufferBlock[bufferNum].value[1] = '1';
@@ -301,7 +304,7 @@ Leaf<KEY>::~Leaf(){
 		bm.bufferBlock[bufferNum].value[i] = temp3 [i-14];
 	}
 
-	cout << "write pointer" << endl;
+	//cout << "write pointer" << endl;
 
 	if(nodelist.size() == 0){
 		cout << "Error!" << endl;
@@ -330,14 +333,14 @@ Leaf<KEY>::~Leaf(){
 		}
 		position +=sizeof(int);
 	}
-	cout << "value" << endl;
+	//cout << "value" << endl;
 	char* temp4;
 	temp4 = (char *)(&recordNum);
 	for (int i = 0; i<4; i++){
 		bm.bufferBlock[bufferNum].value[2 + i] = temp4[i];
 	}
-	cout << "end" << endl;
-	cout << fukcount++ << endl;
+	//cout << "end" << endl;
+	//cout << fukcount++ << endl;
 }
 template <class KEY>
 void Leaf<KEY>::insert(Data<KEY> data){
@@ -406,6 +409,7 @@ void IndexManager<KEY>::createIndex(Table & tableinfo, Index & indexinfo){
 	char * t = new char[indexinfo.tuplelength];
 
 	for(int blockOffset = 0;blockOffset <tableinfo.blockNum; blockOffset++){
+		cout << blockOffset << endl;
 		int bufferNum = bm.getIfIsInBuffer(filename, blockOffset);
 		if(bufferNum == -1){
 			bufferNum = bm.getEmptyBuffer();
@@ -417,15 +421,80 @@ void IndexManager<KEY>::createIndex(Table & tableinfo, Index & indexinfo){
 			KEY colume;
 			
 			for(int k = 0;k<indexinfo.columnLength;k++){
-			t[k] = bm.bufferBlock[bufferNum].value[position+indexinfo.startposition+k];
+				t[k] = bm.bufferBlock[bufferNum].value[position + indexinfo.startposition + k];
 			}
+
 			colume = *((KEY *)(t));
+
+			
 			Data<KEY> node(colume, blockOffset, offset);
 			insertValue(indexinfo, node);
 		}
 	}
 	delete[] t;
 }
+template<class KEY>
+void IndexManager<KEY>::createIndexforString(Table & tableinfo, Index & indexinfo){
+	string filename = indexinfo.index_name + ".index";
+	fstream  fout(("./bm/" + filename).c_str(), ios::out | ios::binary);
+	fout.close();
+	int blockNum;
+	blockNum = bm.addBlockInFile(indexinfo);
+	bm.bufferBlock[blockNum].filename = filename;
+	bm.bufferBlock[blockNum].blockOffset = 0;
+	bm.bufferBlock[blockNum].isWritten = 1;
+	bm.bufferBlock[blockNum].isValid = 1;
+	bm.bufferBlock[blockNum].value[0] = '1';   //block的第一位标记是否是根
+	bm.bufferBlock[blockNum].value[1] = '1';  //block的第二位标记是否是叶节点
+	int recordNum = 0;
+	char * temp;
+	temp = (char *)(&recordNum);
+	for (int i = 0; i<4; i++){
+		bm.bufferBlock[blockNum].value[2 + i] = temp[i];
+	}
+	int initpt = 0;
+
+	temp = (char *)(&initpt);
+	for (int i = 0; i<sizeof(int); i++){
+		bm.bufferBlock[blockNum].value[6 + i] = temp[i];
+	}
+	for (int i = 0; i<sizeof(int); i++){
+		bm.bufferBlock[blockNum].value[10 + i] = temp[i];
+	}
+	for (int i = 0; i<sizeof(int); i++){
+		bm.bufferBlock[blockNum].value[14 + i] = temp[i];
+	}
+
+	filename = tableinfo.name + ".table";
+	int length = tableinfo.tupleLength + 1;
+	const int recordNumber = BLOCKSIZE / length;
+	char * t = new char[indexinfo.tuplelength];
+
+	for (int blockOffset = 0; blockOffset <tableinfo.blockNum; blockOffset++){
+		int bufferNum = bm.getIfIsInBuffer(filename, blockOffset);
+		if (bufferNum == -1){
+			bufferNum = bm.getEmptyBuffer();
+			bm.readBlock(filename, blockOffset, bufferNum);
+		}
+		for (int offset = 0; offset < recordNumber; offset++){
+			int position = offset * length;
+			if (bm.bufferBlock[bufferNum].value[position] == EMPTY || (bool *)bm.bufferBlock[bufferNum].value[position] == false)continue;	//可以改进
+			string colume;
+
+			for (int k = 0; k<indexinfo.columnLength; k++){
+				t[k] = bm.bufferBlock[bufferNum].value[position + indexinfo.startposition + k];
+			}
+			
+				colume = string(t);
+		
+			Data<string> node(colume, blockOffset, offset);
+			insertValue(indexinfo, node);
+		}
+	}
+	delete[] t;
+}
+
+
 template <class KEY>
 InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, int blockOffset){
 	InnerData<KEY> reBranch;
@@ -442,12 +511,12 @@ InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, 
 		const int RecordLength = indexinfo.columnLength + 8;
 		const int MaxrecordNum = (BLOCKSIZE-18)/RecordLength;
 		if( leaf.recordNum >MaxrecordNum ){
-			cout << "split1" << endl;
+			//cout << "split1" << endl;
 			if(leaf.Root){
 				int rbufferNum = leaf.bufferNum;
 				leaf.bufferNum = bm.addBlockInFile(indexinfo);
 				int sbufferNum = bm.addBlockInFile(indexinfo);
-				cout << "split2" << endl;
+				//cout << "split2" << endl;
 				InnerNode<KEY> branchRoot(rbufferNum);
 				Leaf<KEY> leafadd(sbufferNum);
 
@@ -455,7 +524,7 @@ InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, 
 				branchRoot.Root = 1;
 				leafadd.Root = 0;
 				leaf.Root = 0;
-				cout << "split3" << endl;
+				//cout << "split3" << endl;
 				branchRoot.pointFather = leafadd.pointFather = leaf.pointFather = 0;
 				branchRoot.columnLength = leafadd.columnLength = leaf.columnLength;
 				leafadd.nextSibling = leaf.nextSibling;
@@ -466,15 +535,15 @@ InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, 
 					leafadd.insert(tnode);
 				}
 				
-				InnerData<KEY> tmptNode;
-				tmptNode.key = leafadd.getfront().key;
-				tmptNode.data = bm.bufferBlock[leafadd.bufferNum].blockOffset;
-				branchRoot.insert(tmptNode);
-				tmptNode.key = leaf.getfront().key;
-				tmptNode.data = bm.bufferBlock[leaf.bufferNum].blockOffset;
-				branchRoot.insert(tmptNode);
+				InnerData<KEY> tmptNode1, tmptNode2;
+				tmptNode1.key = leafadd.getfront().key;
+				tmptNode1.data = bm.bufferBlock[leafadd.bufferNum].blockOffset;
+				branchRoot.insert(tmptNode1);
+				tmptNode2.key = leaf.getfront().key;
+				tmptNode2.data = bm.bufferBlock[leaf.bufferNum].blockOffset;
+				branchRoot.insert(tmptNode2);
 				return reBranch;
-				cout << "split" << endl;
+				//cout << "split" << endl;
 			}
 			else{
 				int bufferNum = bm.addBlockInFile(indexinfo);
@@ -585,7 +654,7 @@ InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, 
 template <class KEY>
 char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset){
 	string filename = indexinfor.index_name + ".index";
-	char * temp = new char[tableinfor.tupleLength];
+	char * temp = new char[tableinfor.tupleLength + 1];
 	int bufferNum = bm.getbufferNum(filename, blockOffset);
 	bool isLeaf = ( bm.bufferBlock[bufferNum].value[1] == '1' );
 	if(isLeaf){
@@ -596,10 +665,11 @@ char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& inde
 				filename = indexinfor.table_name + ".table";
 				int recordBufferNum = bm.getbufferNum(filename, (*i).BlockInFile);
 				int position = (tableinfor.tupleLength + 1) * ((*i).Offset);
-
-				for(int j = 0;j<indexinfor.tuplelength;j++){
-					temp[j] = bm.bufferBlock[bufferNum].value[position + j+1];
+				
+				for(int j = 0;j<indexinfor.tuplelength+1;j++){
+					temp[j] = bm.bufferBlock[recordBufferNum].value[position + j];
 				}
+				
 				return temp;
 			}
 		}
@@ -618,11 +688,108 @@ char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& inde
 	}
 	return temp;
 }
+
+template <class KEY>
+char*  IndexManager<KEY>::selectEqualForString(const Table& tableinfor, const Index& indexinfor, string key, int blockOffset){
+	string filename = indexinfor.index_name + ".index";
+	char * temp = new char[tableinfor.tupleLength + 1];
+	int bufferNum = bm.getbufferNum(filename, blockOffset);
+	bool isLeaf = (bm.bufferBlock[bufferNum].value[1] == '1');
+	if (isLeaf){
+		Leaf<string> leaf(bufferNum, indexinfor);
+		list< Data<string> >::iterator i = leaf.nodelist.begin();
+		for (i = leaf.nodelist.begin(); i != leaf.nodelist.end(); i++){
+			if ((*i).key == key){
+				filename = indexinfor.table_name + ".table";
+				int recordBufferNum = bm.getbufferNum(filename, (*i).BlockInFile);
+				int position = (tableinfor.tupleLength + 1) * ((*i).Offset);
+
+				for (int j = 0; j<indexinfor.tuplelength + 1; j++){
+					temp[j] = bm.bufferBlock[recordBufferNum].value[position + j];
+				}
+
+				return temp;
+			}
+		}
+	}
+	else{
+		InnerNode<string> branch(bufferNum, indexinfor);
+		list< InnerData<string> >::iterator i = branch.nodelist.begin();
+		for (i = branch.nodelist.begin(); i != branch.nodelist.end(); i++){
+			if ((*i).key > key){
+				i--;
+				break;
+			}
+		}
+		if (i == branch.nodelist.end()) i--;
+		temp = selectEqual(tableinfor, indexinfor, key, (*i).data);
+	}
+	return temp;
+}
+
 template <class KEY>
 void IndexManager<KEY>::dropIndex(Index& indexinfor){
 	string filename = indexinfor.index_name + ".index";
-	if( remove(filename.c_str()) != 0 )
+	if( remove("./bm/" +filename.c_str()) != 0 )
 		perror( "Error " );
 	else
 		bm.setInvalid(filename);
+}
+
+template <class KEY>
+vector<char *>  IndexManager<KEY>::selectFromTo(Table& table, Index & indexinfo, KEY start,KEY end,int blockOffset ){
+	vector<char *>result;
+	string filename = indexinfor.index_name + ".index";
+		int bufferNum = buf.getbufferNum(filename, blockOffset);
+		bool isLeaf = ( buf.bufferBlock[bufferNum].values[1] == '1' );
+		if(isLeaf){
+			do{
+				Leaf<KEY> leaf(bufferNum, indexinfor);
+				list< Data<KEY> >::iterator i;
+				for(i = leaf.nodelist.begin(); i!= leaf.nodelist.end(); i++){
+					if((*i).key >= start){
+						if((*i).key > end){
+							return result;
+						}
+						filename = indexinfor.table_name + ".table";
+						int recordBufferNum = buf.getbufferNum(filename, (*i).BlockInFile);
+						int position = (tableinfor.totalLength +1)* ((*i).Offset);
+						       //maybe wrong
+						char * temp = new char[tableinfor.totalLength +1];
+						
+						for(int j = 0;j<tableinfor.totalLength+1;j++){
+							temp[j] = bm.bufferBlock[recordBufferNum].value[position + j];
+						}
+						result.insert (temp);
+						
+					}
+				}
+				if(leaf.nextSibling != 0){
+					filename = indexinfor.index_name + ".index";
+					bufferNum = buf.getbufferNum(filename, leaf.nextSibling);
+				}
+				else{
+					return result;
+				}
+			}while(1);
+		}
+		else{
+			InnerNode<KEY> branch(bufferNum, indexinfor);
+			list< InnerData<KEY> >::iterator i = branch.nodelist.begin();
+			if((*i).key > start){
+				result = selectFromTo(tableinfor, indexinfor,start,end, (*i).data);
+				return result;
+			}
+			else{
+				for(i = branch.nodelist.begin(); i != branch.nodelist.end(); i++){
+					if((*i).key > start){
+						i--;
+						break;
+					}
+				}
+				result = selectBetween(tableinfor, indexinfor, start, end, (*i).data);
+				return result;
+			}
+		}
+		return result;
 }

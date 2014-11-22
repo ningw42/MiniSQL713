@@ -19,7 +19,10 @@ public:
 	bool isExist(char * data, int currentPos, int length, TYPE type, const Table & table);
 	int hasCondition(const vector<Condition> & conditions, const string & attrName);
 	int findIndexOf(const vector<Attribute> & attributes, const Condition & condition);
+	Condition indexAvailable(const Table & table, const vector<Condition> & conditions);
+	bool hasIndex(const Table & table, const string & attrName);
 	int copyinto(char * buffer, const char * from, int start, int length);
+
 	bool createTable(Table & table);
 	bool insertValue(Table & table, const string & values);
 	bool dropTable(string & tableName);

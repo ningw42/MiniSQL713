@@ -10,8 +10,8 @@ extern CatalogManager cm;
 RecordManager rm;
 IndexManager<int> imInt;
 IndexManager<float> imFloat;
-IndexManager<string> imString
-;
+IndexManager<string> imString;
+
 extern bool quitFlag;
 void APIMoudule::API(SQLstatement &s)
 {
@@ -36,7 +36,7 @@ void APIMoudule::API(SQLstatement &s)
 				imFloat.createIndex(*t, *i);
 			}
 			else if (type == MYCHAR){
-				imString.createIndex(*t, *i);
+				imString.createIndexforString(*t, *i);
 			}
 			else{
 				cout << "wrong type." << endl;
@@ -173,7 +173,7 @@ void APIMoudule::API(SQLstatement &s)
 				if (sql.at(sql.length() - 1) == ';'){
 					sql.erase(0, 1);
 					sql = lower(sql);
-					cout << sql << endl;
+					//cout << sql << endl;
 					sql = Interpreter(sql);
 					SQLstatement s(sql);
 					API(s);

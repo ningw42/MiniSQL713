@@ -210,7 +210,7 @@ SQLstatement::SQLstatement(string SQL)
 				int length = 4;
 				if (attrtype == MYCHAR)
 				{
-					length = atoi(SQL.substr(first + 1, second - first - 1).c_str());
+					length = atoi(SQL.substr(first + 1, second - first - 1).c_str()) + 1;
 				}
 				attributes.push_back(Attribute(attrname, attrtype, length, false, attrisUnique));
 			}
