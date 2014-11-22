@@ -1,5 +1,6 @@
 ﻿#include "Record_Manager.h"
 #include "Buffer_Manager.h"
+#include <time.h>
 
 BufferManager bm;
 
@@ -91,7 +92,10 @@ int RecordManager::deleteWithoutwhere(Table & table)
 
 bool RecordManager::insertValue(Table & table, const string & values)
 {
+	//clock_t time_start = clock();
 	bm.scanIn(table);
+	//clock_t time_end = clock();
+	//cout << (double)(time_end - time_start) / CLOCKS_PER_SEC << endl;
 	int writeLength = table.tupleLength + 1;
 	char * tempData = new char[writeLength];	// new
 	int currentPos = 0;							// 当前tempData的写入位置

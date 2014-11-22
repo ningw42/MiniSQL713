@@ -48,7 +48,7 @@ public:
 	InnerNode(int bufferNumber, const Index& index);
 	~InnerNode();
 	void insert(InnerData<KEY> data);
-	void load(InnerData<KEY> data);
+	
 	InnerData<KEY> pop();
 	InnerData<KEY> getfront();
 	int getrecordNum(int buffernum);
@@ -64,7 +64,7 @@ public:
 	Leaf(int bufnum, const Index& indexinfo);
 	~Leaf();
 	void insert(Data<KEY> data);
-	void load(Data<KEY> data);
+	
 	Data<KEY> pop();
 	Data<KEY> getfront();
 };
@@ -127,10 +127,10 @@ InnerNode<KEY>::InnerNode(int bufferNumber, const Index& index){
 	bufferNum = bufferNumber;
 
 	Root = isRoot(bufferNumber);
-	recordNum = getrecordNum(bufferNumber);
+	
 	int count = getrecordNum(bufferNumber);
 	pointFather = getPointer(FATHER);
-
+	recordNum = 0;
 	int position = 18;
 	KEY tempkey;
 	int tempdata;
@@ -147,7 +147,7 @@ InnerNode<KEY>::InnerNode(int bufferNumber, const Index& index){
 		tempdata = *((int *)temp);
 		position = position + sizeof(int);
 		InnerData<KEY> data(tempkey,tempdata);
-		load(data);
+		insert(data);
 	}
 	delete[] temp;
 }
@@ -196,7 +196,7 @@ InnerNode<KEY>::~InnerNode(){
 }
 template <class KEY>
 void InnerNode<KEY>::insert(InnerData<KEY> data){
-
+	recordNum++;
 	list<InnerData<KEY>>::iterator i = nodelist.begin();
 	if(nodelist.size() == 0)
 		nodelist.insert(i, data);
@@ -205,21 +205,9 @@ void InnerNode<KEY>::insert(InnerData<KEY> data){
 			if((*i).key > data.key) break;
 		nodelist.insert(i, data);
 	}
-	recordNum++;
-}
-template <class KEY>
-void InnerNode<KEY>::load(InnerData<KEY> data){
-
-	list<InnerData<KEY>>::iterator i = nodelist.begin();
-	if (nodelist.size() == 0)
-		nodelist.insert(i, data);
-	else{
-		for (i = nodelist.begin(); i != nodelist.end(); i++)
-		if ((*i).key > data.key) break;
-		nodelist.insert(i, data);
-	}
 	
 }
+
 
 template <class KEY>
 InnerData<KEY> InnerNode<KEY>::pop(){
@@ -260,9 +248,10 @@ Leaf<KEY>::Leaf(int bufnum,const Index& indexinfo){
 	lastSibling = getPointer(LEFT);
 	columnLength = indexinfo.columnLength;
 	int position = 18;
-	recordNum = getRecordNum(bufferNum);
+	int recordCount = getRecordNum(bufnum);
+	recordNum = 0;
 	char * temp = new char[sizeof(KEY)];
-	for(int i = 0; i < recordNum; i++)
+	for(int i = 0; i < recordCount; i++)
 	{
 		KEY key ;
 		int tempblock,tempoff;
@@ -282,7 +271,7 @@ Leaf<KEY>::Leaf(int bufnum,const Index& indexinfo){
 		tempoff = *((int *)temp);
 		position +=sizeof(int);
 		Data<KEY> newdata(key,tempblock,tempoff);
-		load(newdata);
+		insert(newdata);
 	}
 	delete[] temp;
 }
@@ -352,6 +341,7 @@ Leaf<KEY>::~Leaf(){
 }
 template <class KEY>
 void Leaf<KEY>::insert(Data<KEY> data){
+	recordNum++;
 	list<Data<KEY>>::iterator i = nodelist.begin();
 	if(nodelist.size() == 0){
 		nodelist.insert(i, data);
@@ -363,24 +353,10 @@ void Leaf<KEY>::insert(Data<KEY> data){
 			if((*i).key > data.key) break;
 	}
 	nodelist.insert(i, data);
-	recordNum++;
-}
-
-template <class KEY>
-void Leaf<KEY>::load(Data<KEY> data){
-	list<Data<KEY>>::iterator i = nodelist.begin();
-	if (nodelist.size() == 0){
-		nodelist.insert(i, data);
-		return;
-	}
-
-	else{
-		for (i = nodelist.begin(); i != nodelist.end(); i++)
-		if ((*i).key > data.key) break;
-	}
-	nodelist.insert(i, data);
 	
 }
+
+
 template <class KEY>
 Data<KEY> Leaf<KEY>::pop(){
 	recordNum--;
@@ -609,7 +585,7 @@ InnerData<KEY> IndexManager<KEY>::insertValue(Index& indexinfo, Data<KEY> node, 
 template <class KEY>
 char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset){
 	string filename = indexinfor.index_name + ".index";
-	char * temp;
+	char * temp = new char[tableinfor.tupleLength];
 	int bufferNum = bm.getbufferNum(filename, blockOffset);
 	bool isLeaf = ( bm.bufferBlock[bufferNum].value[1] == '1' );
 	if(isLeaf){
