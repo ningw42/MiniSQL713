@@ -2,7 +2,7 @@
 #define __BufferManager_H__
 
 #define BLOCKSIZE 4096
-#define MAXBLOCKNUMBER 2048
+#define MAXBLOCKNUMBER 4096
 
 #include "MiniSQL.h"
 #include "Index_Manager.h"

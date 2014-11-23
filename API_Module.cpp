@@ -18,7 +18,14 @@ void APIMoudule::API(SQLstatement &s)
 {
 	if (s.type == CREATE_TABLE){
 		if (cm.API_Catalog(s)){
-			// µ÷record
+			Table *t = cm.findTable(s.tableName);
+			if (t->primaryKey != "")
+			{
+				string SQL = "create index " + t->primaryKey + "index on " + t->name + "(" + t->primaryKey + ");";
+				SQL = Interpreter(SQL);
+				SQLstatement ss(SQL);
+				api.API(ss);
+			}
 		}
 		else{
 			cout << "create table failed" << endl;
@@ -58,7 +65,7 @@ void APIMoudule::API(SQLstatement &s)
 	}
 	else if (s.type == DROP_INDEX){
 		if (cm.API_Catalog(s)){
-			// µ÷index
+			imInt.dropIndex(s.indexName);
 		}
 		else{
 			cout << "drop index failed" << endl;
@@ -174,7 +181,7 @@ void APIMoudule::API(SQLstatement &s)
 				if (sql.at(sql.length() - 1) == ';'){
 					sql.erase(0, 1);
 					sql = lower(sql);
-					//cout << sql << endl;
+					cout << sql << endl;
 					sql = Interpreter(sql);
 					SQLstatement s(sql);
 					API(s);

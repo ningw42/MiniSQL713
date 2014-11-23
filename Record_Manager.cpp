@@ -20,39 +20,86 @@ bool RecordManager::dropTable(string & tableName)
 
 int RecordManager::deleteWithwhere(Table & table, vector<Condition> & conditions)
 {
-	bm.scanIn(table);
 	int deleteLength = table.tupleLength + 1;	// 检查的长度
 	int count = 0;								// 删除的行数
 	string * allAttrValuestemp = new string[table.attriNum];	// 暂存同行的各属性值		new
 
-	for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+	Condition cond = indexAvailable(table, conditions);
+	if (cond.relationType != UNDEFINED_RELATION)
 	{
-		if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
+		string indexName;
+		for (size_t i = 0; i < table.attributes.size(); i++)
 		{
-			for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
+			if (table.attributes[i].name == cond.attribute.name)
 			{
-				int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
-				if (visibleBit == 1)
+				indexName = table.attributes[i].indexName;
+				break;
+			}
+		}
+		Index indexinfo = *cm.findIndex(indexName);
+		DeletePos dataBuffer;
+		switch (cond.attribute.type)
+		{
+		case MYINT:
+			dataBuffer = imInt.selectEqualForDelete(table, indexinfo, stoi(cond.value));
+			break;
+		case MYFLOAT:
+			dataBuffer = imFloat.selectEqualForDelete(table, indexinfo, stof(cond.value));
+			break;
+		case MYCHAR:
+			dataBuffer = imString.selectEqualForDelete(table, indexinfo, cond.value.substr(1, cond.value.length() - 2));
+			break;
+		default:
+			break;
+		}
+
+		if (dataBuffer.block != -1 && dataBuffer.offset != -1)
+		{
+			int bufferaddr = bm.getIfIsInBuffer(table.name + ".table", dataBuffer.block);
+			if (bufferaddr == -1)
+			{
+				bufferaddr = bm.getEmptyBuffer();
+				bm.readBlock(table.name + ".table", dataBuffer.block, bufferaddr);
+			}
+
+			int position = dataBuffer.offset * (table.tupleLength + 1);
+			bm.bufferBlock[bufferaddr].value[position] = 0;
+			bm.bufferBlock[bufferaddr].isWritten = true;
+			count = 1;
+		}
+	}
+	else
+	{
+		bm.scanIn(table);
+		for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
+		{
+			if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
+			{
+				for (int blockIndex = 0; blockIndex <= BLOCKSIZE - deleteLength; blockIndex += deleteLength)	// 有个坑 =号
 				{
-					int positionOffset = 1;	// 跳过visibleBit
-					for (int i = 0; i < table.attriNum; i++)
+					int visibleBit = bm.bufferBlock[bufferIndex].value[blockIndex];	// 取得visibleBit
+					if (visibleBit == 1)
 					{
-						string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
-						// 取出每个属性的值 并且string化
-						allAttrValuestemp[i] = value;
-						positionOffset += table.attributes[i].length;	// 下个属性
+						int positionOffset = 1;	// 跳过visibleBit
+						for (int i = 0; i < table.attriNum; i++)
+						{
+							string value = toString(bm.bufferBlock[bufferIndex].value + blockIndex + positionOffset, table.attributes[i].length, table.attributes[i].type);
+							// 取出每个属性的值 并且string化
+							allAttrValuestemp[i] = value;
+							positionOffset += table.attributes[i].length;	// 下个属性
+						}
+						if (satisfy(table.attributes, conditions, allAttrValuestemp))
+						{
+							// set visable bit to 0(false);
+							bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
+							bm.bufferBlock[bufferIndex].isWritten = true;
+							count++;
+						}
 					}
-					if (satisfy(table.attributes, conditions, allAttrValuestemp))
+					else if (visibleBit == 64)	// visibleBit == '@' （空）
 					{
-						// set visable bit to 0(false);
-						bm.bufferBlock[bufferIndex].value[blockIndex] = (char)false;
-						bm.bufferBlock[bufferIndex].isWritten = true;
-						count++;
+						break;
 					}
-				}
-				else if (visibleBit == 64)	// visibleBit == '@' （空）
-				{
-					break;
 				}
 			}
 		}
@@ -107,7 +154,6 @@ bool RecordManager::insertValue(Table & table, const string & values)
 	int start = 0;
 	int end = 0;
 
-	// primaryKey和Unique检查还没做
 
 	bool visable = true;	// lazy delete 用
 	currentPos = copyinto(tempData, (char *)&visable, currentPos, 1);
@@ -155,6 +201,40 @@ bool RecordManager::insertValue(Table & table, const string & values)
 		insertPos insertPos = bm.getInsertPosition(table);
 		int bufferIndex = insertPos.bufferNUM;
 		int blockIndex = insertPos.position;
+
+		int scanPos = 1;
+		for (size_t i = 0; i < table.attributes.size(); i++)
+		{
+			if (table.attributes[i].indexName != "")
+			{
+				Index index = *cm.findIndex(table.attributes[i].indexName);
+				switch (table.attributes[i].type)
+				{
+				case MYCHAR:
+				{
+					Data<string> data(toString(tempData + scanPos, table.attributes[i].length, MYCHAR), bm.bufferBlock[bufferIndex].blockOffset, blockIndex / table.tupleLength);
+					imString.insertValue(index, data);
+					break;
+				}
+				case MYINT:
+				{
+					Data<int> data(*(int *)(tempData + scanPos), bm.bufferBlock[bufferIndex].blockOffset, blockIndex / table.tupleLength);
+					imInt.insertValue(index, data);
+					break;
+				}
+				case MYFLOAT: 
+				{
+					Data<float> data(*(float *)(tempData + scanPos), bm.bufferBlock[bufferIndex].blockOffset, blockIndex / table.tupleLength);
+					imFloat.insertValue(index, data);
+					break;
+				}
+				default:
+					break;
+				}
+			}
+			scanPos += table.attributes[i].length;
+		}
+		
 		for (int i = 0; i < writeLength; i++)
 		{
 			bm.bufferBlock[bufferIndex].value[blockIndex + i] = tempData[i];
@@ -222,30 +302,34 @@ int RecordManager::selectWithwhere(Table & table, const vector<Attribute> & attr
 			break;
 		}
 
-		int visibleBit = dataBuffer[0];	// 取得visibleBit
-		if (visibleBit == 1)
+		if (dataBuffer != NULL)
 		{
-			int positionOffset = 1;	// 跳过visibleBit
-			int count = 0;	// 选择属性的下标
-			for (int i = 0; i < table.attriNum; i++)
+			int visibleBit = dataBuffer[0];	// 取得visibleBit
+			if (visibleBit == 1)
 			{
-				string value = toString(dataBuffer + positionOffset, table.attributes[i].length, table.attributes[i].type);
-				allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
-				if (contains(selectAttrbute, table.attributes[i]))
+				int positionOffset = 1;	// 跳过visibleBit
+				int count = 0;	// 选择属性的下标
+				for (int i = 0; i < table.attriNum; i++)
 				{
-					// 记录是第几个需要的属性
-					cluster[count].push_back(value);/*把值放入列表*/
-					count++;
+					string value = toString(dataBuffer + positionOffset, table.attributes[i].length, table.attributes[i].type);
+					allAttrValuestemp[i] = value;	// 暂存当前遍历的tuple的属性值
+					if (contains(selectAttrbute, table.attributes[i]))
+					{
+						// 记录是第几个需要的属性
+						cluster[count].push_back(value);/*把值放入列表*/
+						count++;
+					}
+					positionOffset += table.attributes[i].length;
 				}
-				positionOffset += table.attributes[i].length;
 			}
 		}
-		cout << "index" << endl;
+		cout << "\t searching with index" << endl;
 		delete dataBuffer;
 	}
 	else
 	{
 		bm.scanIn(table);
+		cout << "\t linear search" << endl;
 		for (int bufferIndex = 0; bufferIndex < MAXBLOCKNUMBER; bufferIndex++)	// 遍历buffer
 		{
 			if (bm.bufferBlock[bufferIndex].filename == table.name + ".table")	// 属于表的块
@@ -705,35 +789,31 @@ bool RecordManager::satisfy(const Condition & cond, const string & value, const 
 
 void RecordManager::outputMap(int tupleCount, const Table & table)
 {
-	int max = 0;
-	int attrCount = table.attriNum;
-	for (int i = 0; i < tupleCount; i++)
-	{
-		int length = 0;
-		for (auto& result : attributeValuesMap) {
-			length += result.second[i].length();
-		}
-		if (length > max)
-		{
-			max = length;
-		}
-	}
-	int length = max * attrCount;
-	for (int i = 0; i < length; i++)
-	{
-		cout << '-';
-	}
-	cout << endl;
+	int length = 0;
 
 	for (auto& result : attributeValuesMap) {
-		cout << "\t" << result.first << "\t";
+		cout << "| " << result.first << "\t\t";
+		length += (2 + 8 + (result.first.length() / 2 + 1) * 2);
+	}
+	cout << "|" << endl;
+	for (int i = 0; i < length + 8; i++)
+	{
+		cout << "-";
 	}
 	cout << endl;
 	for (int i = 0; i < tupleCount; i++)
 	{
 		for (auto& result : attributeValuesMap) {
-			cout << "\t"  << result.second[i] << "\t";
+			cout << "| "  << result.second[i] << "\t";
+			if (result.second[i].length() <= 4)
+			{
+				cout << "\t";
+				if (abs((int)(result.first.length() - result.second[i].length())) >= 4)
+				{
+					cout << "\t";
+				}
+			}
 		}
-		cout << endl;
+		cout << "|" << endl;
 	}
 }

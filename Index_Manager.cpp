@@ -5,7 +5,13 @@
 #include "MiniSQL.h"
 extern int fukcount;
 enum PointerType{ FATHER, LEFT, RIGHT };
-
+class DeletePos{
+public:
+	int block;
+	int offset;
+	DeletePos(){}
+	DeletePos(int block, int offset) : block(block), offset(offset){}
+};
 template <class KEY>
 class Data{
 public:
@@ -74,7 +80,8 @@ public:
 	void createIndex(Table & tableinfo, Index & indexinfo);
 	InnerData<KEY> insertValue(Index& indexinfor, Data<KEY> node, int blockOffset = 0);
 	char * selectEqual(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset = 0);
-	void dropIndex(Index& indexinfor);
+	void dropIndex(const string& indexName);
+	DeletePos selectEqualForDelete(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset = 0);
 	vector<char *>  selectFromTo(Table& table, Index & indexinfo, KEY start,KEY end,int blockOffset = 0);
 	void createIndexforString(Table & tableinfo, Index & indexinfo);
 	char * selectEqualForString(const Table& tableinfor, const Index& indexinfor,string key, int blockOffset=0);
@@ -679,14 +686,54 @@ char * IndexManager<KEY>::selectEqual(const Table& tableinfor, const Index& inde
 		list< InnerData<KEY> >::iterator i = branch.nodelist.begin();
 		for(i = branch.nodelist.begin(); i != branch.nodelist.end(); i++){
 			if((*i).key > key){
+				if (i == branch.nodelist.begin()){
+					return NULL;
+				}
 				i--;
 				break;
 			}
 		}
 		if(i == branch.nodelist.end()) i--;
 		temp = selectEqual(tableinfor, indexinfor, key, (*i).data);
+		return temp;
 	}
-	return temp;
+	return NULL;
+}
+template <class KEY>
+DeletePos IndexManager<KEY>::selectEqualForDelete(const Table& tableinfor, const Index& indexinfor, KEY key, int blockOffset){
+	string filename = indexinfor.index_name + ".index";
+	DeletePos result;
+	
+	int bufferNum = bm.getbufferNum(filename, blockOffset);
+	bool isLeaf = (bm.bufferBlock[bufferNum].value[1] == '1');
+	if (isLeaf){
+		Leaf<KEY> leaf(bufferNum, indexinfor);
+		list< Data<KEY> >::iterator i = leaf.nodelist.begin();
+		for (i = leaf.nodelist.begin(); i != leaf.nodelist.end(); i++){
+			if ((*i).key == key){
+				result.block = (*i).BlockInFile;
+				result.offset = (*i).Offset;
+				return result;
+			}
+		}
+	}
+	else{
+		InnerNode<KEY> branch(bufferNum, indexinfor);
+		list< InnerData<KEY> >::iterator i = branch.nodelist.begin();
+		for (i = branch.nodelist.begin(); i != branch.nodelist.end(); i++){
+			if ((*i).key > key){
+				if (i == branch.nodelist.begin()){
+					return DeletePos(-1, -1);
+				}
+				i--;
+				break;
+			}
+		}
+		if (i == branch.nodelist.end()) i--;
+		result = selectEqualForDelete(tableinfor, indexinfor, key, (*i).data);
+		return result;
+	}
+	return DeletePos(-1, -1);
 }
 
 template <class KEY>
@@ -722,15 +769,16 @@ char*  IndexManager<KEY>::selectEqualForString(const Table& tableinfor, const In
 			}
 		}
 		if (i == branch.nodelist.end()) i--;
-		temp = selectEqual(tableinfor, indexinfor, key, (*i).data);
+		temp = selectEqualForString(tableinfor, indexinfor, key, (*i).data);
+		return temp;
 	}
-	return temp;
+	return NULL;
 }
 
 template <class KEY>
-void IndexManager<KEY>::dropIndex(Index& indexinfor){
-	string filename = indexinfor.index_name + ".index";
-	if( remove("./bm/" +filename.c_str()) != 0 )
+void IndexManager<KEY>::dropIndex(const string& indexName){
+	string filename = indexName + ".index";
+	if( remove(("./bm/" +filename).c_str()) != 0 )
 		perror( "Error " );
 	else
 		bm.setInvalid(filename);

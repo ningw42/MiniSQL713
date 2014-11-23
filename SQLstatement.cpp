@@ -47,7 +47,8 @@ RELATION_TYPE SQLstatement::getRelationType(string oper)
 	else if (oper == "<") return SMALLER;
 	else if (oper == ">=") return GREATER_EQUAL;
 	else if (oper == "<=") return SMALLER_EQUAL;
-	else if (oper == "!=") return NOT_EQUAL;
+	else if (oper == "<>") return NOT_EQUAL;
+	else return UNDEFINED_RELATION;
 	// 有个坑 ： 操作符不合法没有处理；					TO-DO
 }
 Condition SQLstatement::genCondition(string exp)
@@ -58,6 +59,10 @@ Condition SQLstatement::genCondition(string exp)
 
 	string attrName = exp.substr(0, front);
 	RELATION_TYPE relationType = getRelationType(exp.substr(front, end - front));
+	if (relationType == UNDEFINED_RELATION)
+	{
+		cout << "undefined RELATION_TYPE, select all tuple instead" << endl;
+	}
 	string value = exp.substr(end);
 
 	//cout << attr << endl << oper << endl << value << endl;
